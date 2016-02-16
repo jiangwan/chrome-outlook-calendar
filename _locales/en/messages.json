@@ -1,0 +1,6 @@
+{
+    "no_events": {
+	"message": "No events",
+	"description": "Message indicating that there is no event for a specific date"
+    }
+}

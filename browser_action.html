@@ -1,0 +1,39 @@
+<DOCTYPE html>
+<html>
+    <head>
+	<link rel="stylesheet" href="browser_action.css" type="text/css">
+	<script src="lib/jquery-1.12.0.min.js"></script>
+	<script src="lib/moment-with-locales.min.js"></script>
+        <script src="src/constants.js"></script>
+	<script src="src/util.js"></script>
+	<script src="src/browser_action.js"></script>
+    </head>
+    <body>
+	<header>
+	    <div id="action-bar">
+		<img src="icons/ic_refresh_white_24dp.png" id="sync_now">
+        <img src="icons/ic_settings_white_24dp.png" style="display:none" id="settings">
+		<img src="icons/ic_sign_out.png" id="sign_out">
+	    </div>
+	    <div id="popup-title">
+		<a id="calendar_url" target="_blank">
+		    <span>Outlook Calendar</span>
+		</a>
+	    </div>
+	</header>
+	<div id="header_placeholder"></div>
+	<div id="error" class="error"></div>
+	<section>
+	    <div id="logon">
+	        <p id="authorization_instruction">Authorization required. Please close the browser before switch to a different account!</p>
+		<div class="wrapper">
+	            <button id="authorization_button" class="primary_button">Sign In</button>
+		</div>
+		<div id="logon-progressBar">
+		    <progress></progress>
+		</div>
+	    </div>
+	    <div id="calendar-events"></div>
+	</section>
+    </body>
+</html>

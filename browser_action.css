@@ -1,0 +1,163 @@
+* {
+  box-sizing: border-box;
+  font-family: Roboto, Arial, sans-serif;
+}
+
+body {
+  background: #e5e5e5;
+  font-size: 14px;
+  height: 480px;
+  overflow-y: scroll;
+  width: 300px;
+  line-height: 20px;
+  padding: 0;
+  margin: 0;
+}
+
+header {
+  height: 48px;
+  background: #0086f4;
+  padding: 12px;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+#popup-title a {
+    font-size: 16px;
+    color: #fff;
+    outline: none;
+    line-height: 24px;
+    text-decoration: none;
+}
+
+#action-bar {
+  float: right;
+  display: none;
+}
+
+#action-bar img {
+  cursor: pointer;
+  height: 24px;
+  width: 24px;
+  margin: 0, 4px;
+}
+
+@-webkit-keyframes spin {
+    from { -webkit-transform: rotate(0deg); }
+    to {-webkit-transform: rotate(360deg); }
+}
+
+.spin {
+    -webkit-animation-name: spin;
+    -webkit-animation-duration: 1000ms;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+}
+
+#header_placeholder {
+    height: 48px;
+}
+
+#error {
+    width: 100%;
+    font-size: 16px;
+    background-color: red;
+    color: yellow;
+    padding: 4px;
+    display: none;
+}
+
+section {
+    padding: 0 8px;
+}
+
+#authorization_instruction {
+    font-size: 14px;
+    margin: 20px 10px;
+}
+
+#logon-progressBar {
+    text-align: center;
+    display: none;
+    margin: 20px;
+}
+
+.wrapper {
+    text-align: center;
+}
+
+.primary_button {
+    cursor: pointer;
+    background: #0086f4;
+    border: 0;
+    border-radius: 2px;
+    color: #fff;
+    display: inline-block;
+    font-size: 14px;
+    text-align: center;
+    padding: 4px 10px;
+}
+
+.event-preview {
+    cursor: pointer;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+    flex: 1;
+    padding: 6px;
+    max-height: 40px;
+}
+
+.date-header {
+    color: #666;
+    font-size: 16px;
+    margin: 16px 0 4px 0;
+    padding: 4px 0;
+}
+
+.start-time {
+    color: #fff;
+    font-size: 12px;
+    white-space: nowrap;
+    padding: 6px;
+}
+
+.event-details {
+    background-color: #f4f4f1;
+    -webkit-box-shadow: 0 0 20px #000000;
+    box-shadow: 0 0 20px #000000;
+    z-index: 20;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.event-timeRange {
+    font-size: 14px;
+    padding: 8px 12px;
+}
+
+.event-location {
+    padding: 4px 12px;
+}
+
+.event-location-icon {
+    float: left;
+    padding: 2px 8px 0 0;
+}
+
+.event-location-icon img {
+    height: 15px;
+}
+
+.event-location-content {
+    font-size: 14px;
+}
+
+.event-body {
+    font-size: 12px;
+    padding: 4px 12px;
+}
