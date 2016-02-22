@@ -16,11 +16,11 @@ background.addMessageListener_ = function() {
 	      break;
 
 	    case 'authentication.clear':
-	      authentication.removeCachedTokens(callback);
+	      authentication.logout();
 	      break;
 
 	    case 'authentication.tokens.request':
-	      authentication.getTokensFromServer(function(accessToken) {
+	      authentication.login(function(accessToken) {
 		  calendar.syncCalendarList();
 		  if (callback) {
 		      callback(accessToken);

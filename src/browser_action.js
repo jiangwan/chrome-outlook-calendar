@@ -35,10 +35,9 @@ browserAction.registerButtonClickHandlers_ = function() {
     });
 
     $('#sign_out').on('click', function() {
-	chrome.runtime.sendMessage({'method': 'authentication.clear'}, function() {
-	    browserAction.hideErrorMessage_();
-	    browserAction.showOrHideLogonMessage_(false/*authorized*/);
-	});
+	chrome.runtime.sendMessage({'method': 'authentication.clear'});	    
+	browserAction.hideErrorMessage_();
+	browserAction.showOrHideLogonMessage_(false/*authorized*/);
     });
 
     $('#settings').on('click', function() {
