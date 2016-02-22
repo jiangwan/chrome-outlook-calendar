@@ -27,6 +27,10 @@ browserAction.registerButtonClickHandlers_ = function() {
 	chrome.runtime.sendMessage({'method': 'authentication.tokens.request'}, browserAction.showOrHideLogonMessage_);
     });
 
+    $('#create_account').on('click', function() {
+	chrome.tabs.create({'url': constants.CREATE_ACCOUNT_URL});
+    });
+
     $('#sync_now').on('click', function() {
 	if (!$(this).hasClass('spin')) {
 	    browserAction.refreshStart_();

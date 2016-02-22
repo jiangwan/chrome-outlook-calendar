@@ -25,12 +25,14 @@
 	<div id="error" class="error"></div>
 	<section>
 	    <div id="logon">
-	        <p id="authorization_instruction">Authorization required. Please close the browser before switch to a different account!</p>
-		<div class="wrapper">
-	            <button id="authorization_button" class="primary_button">Sign In</button>
+		<div id="login-logo">
+		    <img alt="Outlook" src="icons/Circled-User-96.png">
 		</div>
-		<div id="logon-progressBar">
-		    <progress></progress>
+		<div class="button-wrapper">
+	            <button id="authorization_button" class="login_button">Sign In</button>
+		</div>
+		<div class="login-option">
+		    <span id="create_account">Create an account</span>
 		</div>
 	    </div>
 	    <div id="calendar-events"></div>
