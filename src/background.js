@@ -17,6 +17,7 @@ background.addMessageListener_ = function() {
 
 	    case 'authentication.clear':
 	      authentication.logout();
+	      chrome.storage.local.clear();
 	      break;
 
 	    case 'authentication.tokens.request':
@@ -26,6 +27,10 @@ background.addMessageListener_ = function() {
 		      callback(accessToken);
 		  }
 	      });
+	      break;
+
+	    case 'authentication.user.get':
+	      authentication.getUserInfo(callback);
 	      break;
 
 	    case 'calendar.calendarList.get':

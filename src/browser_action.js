@@ -3,6 +3,9 @@
  */
 var browserAction = {};
 
+browserAction.CONSTANTS = {
+    SLIDE_DELAY: 100
+};
 
 /**
  * Initialize the popup page
@@ -11,19 +14,17 @@ browserAction.initialize = function() {
     browserAction.initializeUIContents_();
     browserAction.registerButtonClickHandlers_();
     browserAction.addMessageListener_();
-    
+
+    // this is only intended for first time loading when there is no cached token.
     chrome.runtime.sendMessage({'method': 'authentication.accessToken.get'}, browserAction.showOrHideLogonMessage_);
 };
-
 
 browserAction.initializeUIContents_ = function() {
     $('#calendar_url').attr('href', constants.CALENDAR_URL);
 };
 
-
 browserAction.registerButtonClickHandlers_ = function() {
     $('#authorization_button').on('click', function() {
-	$('#logon-progressBar').show();
 	chrome.runtime.sendMessage({'method': 'authentication.tokens.request'}, browserAction.showOrHideLogonMessage_);
     });
 
@@ -38,22 +39,19 @@ browserAction.registerButtonClickHandlers_ = function() {
 	}
     });
 
-    $('#sign_out').on('click', function() {
-	chrome.runtime.sendMessage({'method': 'authentication.clear'});	    
-	browserAction.hideErrorMessage_();
-	browserAction.showOrHideLogonMessage_(false/*authorized*/);
+    $('#logout_button').on('click', function() {
+	chrome.runtime.sendMessage({method: 'authentication.clear'});
+	browserAction.showOrHideLogonMessage_(false /*authorized*/);
+	$('#content-blocker').hide();
+	$('#header-popup').hide();
+	$('#error').hide();
+	$('#calendar-events').hide();
     });
 
     $('#settings').on('click', function() {
 	chrome.tabs.create({'url': 'options.html'});
     });
 };
-
-
-browserAction.promptForLogonIfNotAuthenticated_ = function() {
-    
-};
-
 
 /**
  * Show all events in the next few days starting from today;
@@ -89,77 +87,97 @@ browserAction.showCalendarEvents_ = function(data) {
     });
 };
 
-
 browserAction.createEventElement_ = function(event, currentDay) {
-    var eventContainer = $('<div>');
+    var eventContainer = $('<div>').addClass('event-container');
 
     // create event preview and detals divs as children of event container box
-    var eventPreview = $('<div>').addClass('event-preview')
-	.appendTo(eventContainer);
-    var eventDetails = $('<div>').attr('id','event-details').appendTo(eventContainer);
-    eventDetails.hide();
+    var eventPreview = $('<div>').addClass('event-preview').appendTo(eventContainer);
+    var eventDetails = $('<div>').appendTo(eventContainer);
 
     // event preview: start time
     var localStartTime = '';
     var start = util.convertEventTimeFromUtcToLocal(event.isAllday, event.startTimeUTC);
-    if (!event.isAllDay && !start.isBefore(currentDay,'day')) {
+    var treatedAsAllDay = event.isAllDay || start.isBefore(currentDay,'day');
+    
+    if (!treatedAsAllDay) {
 	localStartTime = start.format('h:mma');
+
+	$('<div>').addClass('preview-time')
+	    .text(localStartTime)
+	    .css({'background-color': util.getCalendarColor(event.color)}) // ToDo: use background color of the page if event color is  Auto
+	    .appendTo(eventPreview);
     }
-
-    $('<div>').addClass('start-time')
-	.text(localStartTime)
-	.css({'background-color': util.getCalendarColor(event.color)}) // ToDo: use background color of the page if event color is  Auto
-	.appendTo(eventPreview);
-
+    
     // event preview: subject
-    $('<div>').addClass('event-preview')
+    $('<div>').addClass('preview-subject')
 	.text(event.subject)
-	.css({'background-color': 'white'})
+	.css({'background-color': treatedAsAllDay ? util.getCalendarColor(event.color) : '#ffffff'})
 	.appendTo(eventPreview);
 
     // lazy load event details
     eventPreview.on('click', function() {
-	if (!eventDetails.is(':visible')) {
-	    $('*[id=event-details]').each(function() {
-		$(this).hide();
-	    });
-	}
-
 	if (!eventDetails.hasClass('event-details')) {
 	    eventDetails.addClass('event-details');
+
+	    var backgroundColor = util.getCalendarColor(event.color);
+
+	    $('<div>').addClass('event-details-subject')
+		.text(event.subject)
+		.css({'background-color': backgroundColor})
+		.appendTo(eventDetails);
 
 	    var timeRangeString = util.getTimeRangeString(
 		moment.utc(event.startTimeUTC).local(),
 		moment.utc(event.endTimeUTC).local(),
 		event.isAllDay);
+
 	    $('<div>').addClass('event-timeRange')
 		.text(timeRangeString)
+		.css({'background-color': backgroundColor})
 		.appendTo(eventDetails);
 
-	    var locationDiv = $('<div>').addClass('event-location').appendTo(eventDetails);
-	    $('<div>').addClass('event-location-icon')
+	    if (event.location) {
+		var locationDiv = $('<div>').addClass('event-location').appendTo(eventDetails);
+		$('<div>').addClass('event-location-icon')
+		    .append($('<img>')
+			    .attr({'src': chrome.extension.getURL('icons/Location-Map-icon.png'), 'alt': 'Location'}))
+		    .appendTo(locationDiv);
+	   
+		$('<div>').addClass('event-location-content')
+		    .text(event.location)
+		    .appendTo(locationDiv);
+	    }
+
+	    var organizerDiv = $('<div>').addClass('event-organizer').appendTo(eventDetails);
+	    $('<div>').addClass('event-organizer-icon')
 		.append($('<img>')
-			.attr({'src': chrome.extension.getURL('icons/Location-Map-icon.png'), 'alt': 'Location'}))
-		.appendTo(locationDiv);
+			.attr({'src': chrome.extension.getURL('icons/Contacts-64.png'), 'alt': 'Organizer'}))
+		.appendTo(organizerDiv);
+
 	    $('<div>').addClass('event-location-content')
-		.text(event.location)
-		.appendTo(locationDiv);
+		.text(event.organizer)
+		.appendTo(organizerDiv);
 
 	    $('<div>').addClass('event-body')
 		.text(event.bodyPreview)
 		.appendTo(eventDetails);
-
-	    eventDetails.on('click', function() {
-		$(this).hide();
-	    });
 	}
+    });
 
-	eventDetails.slideToggle(100);
+    eventContainer.on('click', function(event) {
+	event.stopPropagation();
+
+	if (!$(event.target).closest(eventDetails).length) {
+	    var wasDetailsOpen = eventDetails.is(':visible');
+	    $('.event-details:visible').slideUp(browserAction.CONSTANTS.SLIDE_DELAY);
+	    if (!wasDetailsOpen) {
+		eventDetails.slideDown(browserAction.CONSTANTS.SLIDE_DELAY);
+	    }
+	}
     });
 
     return eventContainer;
 };
-
 
 browserAction.showOrHideLogonMessage_ = function(authorized) {
     if (authorized) {
@@ -175,27 +193,22 @@ browserAction.showOrHideLogonMessage_ = function(authorized) {
     }
 };
 
-
 browserAction.refreshStart_ = function() {
     $('#sync_now').addClass('spin');
 };
 
-
 browserAction.refreshStop_ = function() {
     $('#sync_now').removeClass('spin');
 };
-
 
 browserAction.showErrorMessage_ = function(error) {
     $('#error').text(error);
     $('#error').show();
 };
 
-
 browserAction.hideErrorMessage_ = function() {
     $('#error').hide();
 };
-
 
 browserAction.addMessageListener_ = function() {
     chrome.runtime.onMessage.addListener(function(message, sender, callback) {

@@ -9,15 +9,39 @@ calendar.CALENDAR_EVENT_API_URL_ = 'https://outlook.office.com/api/v2.0/me/calen
 
 calendar.DAYS_TO_OBSERVE_ = 7;
 
-
 /**
  * Sync calendar list from server; once succeeded, sync all calendar events too;
  */
 calendar.syncCalendarList = function() {
-    authentication.getAccessToken(function getCalendars(accessToken) {
+    authentication.getAccessToken(calendar._getCalendarsWithRetry(0 /*retryCount*/));	 
+};
+
+calendar._getCalendarsWithRetry = function(retryCount) {
+    var onFailure = function(retry) {
+	if (retry < constants.REFRESH_TOKENS_RETRY_LIMIT) {
+	    console.log('Unable to sync calendar list. Attempt: ' + retry);
+		
+	    window.setTimeout(function(callback) {
+		authentication.refreshTokens(callback);
+	    }, constants.REFRESH_TOKENS_RETRY_INTERVAL, calendar._getCalendarsWithRetry(retry + 1));
+	} else {
+	    chrome.runtime.sendMessage({method: 'ui.refresh.stop'});
+
+	    // for now we just ask for re-login for sync failure
+	    chrome.runtime.sendMessage({method: 'ui.authStatus.updated', authorized: false});
+	}
+    };
+
+    return function(accessToken) {
+	if (!accessToken) {
+	    onFailure(retryCount);
+	    return;
+	}
+
 	$.ajax(calendar.CALENDAR_LIST_API_URL_, {
 	    headers: {'Authorization': 'Bearer ' + accessToken},
-	    dataType: 'json'
+	    dataType: 'json',
+	    retry: retryCount
 	})
 	.done(function(data, status, response) {
 	    var calendarList = {};
@@ -29,7 +53,7 @@ calendar.syncCalendarList = function() {
 		    'color': item.Color
 		};
 	    });
-		
+	    
 	    chrome.storage.local.set({'calendar_list': calendarList}, function() {
 		if (chrome.runtime.lastError) {
 		    console.log('Error saving calendar list to local storage: ' + chrome.runtime.lastError.message);
@@ -40,16 +64,10 @@ calendar.syncCalendarList = function() {
 	    });
 	})
 	.fail(function(response) {
-	    chrome.runtime.sendMessage({'method': 'ui.refresh.stop'});
-	    chrome.runtime.sendMessage({'method': 'ui.error.show', 'error': response.responseText});
-	    if (response.status == 401) {
-		console.log('Unable to sync calendar list: ' + response.statusText);
-		authentication.refreshAccessToken(getCalendars);
-	    }
+	    onFailure(this.retry);
 	});
-    });	 
+    };
 };
-
 
 /**
  * Sync all events from server using cached calendar list
@@ -61,48 +79,66 @@ calendar.syncEvents = function() {
 	    return;
 	}
 
-	var calendars = storage['calendar_list'];
-	authentication.getAccessToken(function retrieveEvents(accessToken) {
-	    var allEvents = [];
-	    var promises = [];
-
-	    for (var id in calendars) {
-		promises.push(calendar.syncCalendarEvents_(accessToken, calendars[id]));
-	    }
-
-	    var timeStamp = moment().toISOString();
-	    Promise.all(promises).then(function(calendarEvents) {
-		$.each(calendarEvents, function(i, events) {
-		    if (events) {
-			allEvents = allEvents.concat(events);
-		    }
-		});
-
-		allEvents.sort(function(first, second) {
-		    return moment.utc(first.startTimeUTC) - moment.utc(second.startTimeUTC);
-		});
-
-		chrome.storage.local.set({'calendar_allEvents': allEvents, 'last_syncedTime': timeStamp}, function() {
-		    if (chrome.runtime.lastError) {
-			console.log('Failed to save all calendar events to local storage');
-			return;
-		    }
-
-		    chrome.runtime.sendMessage({'method': 'ui.events.update'});
-		});
-	    }, function(error) {
-		if (error.statusCode == '401') {
-		    authentication.refreshAccessToken(retrieveEvents);
-		} else {
-		    chrome.runtime.sendMessage({'method': 'ui.refresh.stop'});
-		}
-	    });
-	});
+	var calendarList = storage['calendar_list'];
+	authentication.getAccessToken(calendar._retrieveEventsWithRetry(calendarList, 0 /*retryCount*/));
     });
 };
 
+calendar._retrieveEventsWithRetry = function(calendars, retryCount) {
+    var reject = (function(calendars, retryCount) {
+	return function(response) {
+	    if (count < constants.REFRESH_TOKENS_RETRY_LIMIT) {
+		window.setTimeout(function(callback) {
+		    authentication.refreshTokens(callback);
+		}, constants.REFRESH_TOKENS_RETRY_INTERVAL, calendar._retrieveEventsWithRetry(calendars, retryCount + 1));
+	    } else {
+		chrome.runtime.sendMessage({method: 'ui.refresh.stop'});
 
-calendar.syncCalendarEvents_ = function(accessToken, calendarInfo) {
+		if (response.statusCode === 401) {
+		    chrome.runtime.sendMessage({method: 'ui.authStatus.updated', authorized: false});
+		}
+	    }
+	};
+    })(calendars, retryCount);
+
+    return function(accessToken) {
+	if (!accessToken) {
+	    reject();
+	    return;
+	}
+
+	var allEvents = [];
+	var promises = [];
+	
+	for (var id in calendars) {
+	    promises.push(calendar._syncCalendarEvents(accessToken, calendars[id]));
+	}
+
+	var timeStamp = moment().toISOString();
+	Promise.all(promises).then(function(calendarEvents) {
+	    $.each(calendarEvents, function(i, events) {
+		if (events) {
+		    allEvents = allEvents.concat(events);
+		}
+	    });
+
+	    allEvents.sort(function(first, second) {
+		return moment.utc(first.startTimeUTC) - moment.utc(second.startTimeUTC);
+	    });
+
+	    chrome.storage.local.set({'calendar_allEvents': allEvents, 'last_syncedTime': timeStamp}, function() {
+		if (chrome.runtime.lastError) {
+		    console.log('Failed to save all calendar events to local storage');
+		    return;
+		}
+
+		chrome.runtime.sendMessage({'method': 'ui.events.update'});
+	    });
+	}, reject);
+    };
+};
+
+calendar._syncCalendarEvents = function(accessToken, calendarInfo) {
     var calendar_id = calendarInfo.id;
     var color = calendarInfo.color;
 
@@ -112,7 +148,8 @@ calendar.syncCalendarEvents_ = function(accessToken, calendarInfo) {
 	var end_datetime = now.add(calendar.DAYS_TO_OBSERVE_, 'days').toISOString();
 	var eventQueryUrl = calendar.CALENDAR_EVENT_API_URL_.replace('{calendar_id}', encodeURIComponent(calendar_id)).
 	    replace('{start_datetime}', start_datetime).
-	    replace('{end_datetime}', end_datetime);
+	    replace('{end_datetime}', end_datetime)
+	+ '&$top=9999'; // bug: without specifying this parameter, the server always returns no more than 10 events
 	
 	$.ajax(eventQueryUrl, {
 	    headers: {'Authorization': 'Bearer ' + accessToken},
@@ -133,6 +170,7 @@ calendar.syncCalendarEvents_ = function(accessToken, calendarInfo) {
 		    'endTimeUTC': end,
 		    'isAllDay': item.IsAllDay,
 		    'bodyPreview': item.BodyPreview,
+		    'organizer': item.Organizer.EmailAddress.Name,
 		    'url': item.WebLink
 		});
 	    });
@@ -146,7 +184,6 @@ calendar.syncCalendarEvents_ = function(accessToken, calendarInfo) {
     });
 };
 
-
 calendar.loadEvents = function(callback) {
     chrome.storage.local.get('calendar_allEvents', function(storage) {
 	if (chrome.runtime.lastError) {
@@ -155,17 +192,16 @@ calendar.loadEvents = function(callback) {
 	}
 
 	var events = storage['calendar_allEvents'];
-	var sortedIndices = calendar.sortEventsByDate_(events);
+	var sortedIndices = calendar._sortEventsByDate(events);
 	callback({'events': events, 'indices': sortedIndices});
     });
 };
-
 
 /**
  * Classify events by date and returns a two dimensional array storing
  * indices of events for each day.
  */ 
-calendar.sortEventsByDate_ = function(events) {
+calendar._sortEventsByDate = function(events) {
     var container = new Array(calendar.DAYS_TO_OBSERVE_);
     for (var i = 0; i < calendar.DAYS_TO_OBSERVE_; i++) {
 	container[i] = [];

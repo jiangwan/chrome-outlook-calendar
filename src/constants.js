@@ -4,6 +4,12 @@ constants.CALENDAR_URL = 'https://outlook.live.com/owa/#path=/calendar';
 
 constants.CREATE_ACCOUNT_URL = 'https://signup.live.com';
 
+constants.REFRESH_TOKENS_TIMEOUT = 3000;
+
+constants.REFRESH_TOKENS_RETRY_INTERVAL = 100;
+
+constants.REFRESH_TOKENS_RETRY_LIMIT = 3;
+
 constants.CALENDAR_COLOR = {
     'LightBlue': 'rgb(166,209,245)',
     'LightTeal': 'rgb(74,218,204)',

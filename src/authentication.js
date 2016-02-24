@@ -57,15 +57,15 @@ authentication.login = function(callback) {
     });
 };
 
-
 authentication.refreshTokens = function(callback) {
     chrome.storage.local.get('tokens', function(storage) {
 	if (chrome.runtime.lastError || !storage['tokens'] || !storage['tokens'].user) {
 	    console.log('Error retrieving cached token info');
-	    callback({error: 'Error retrieving cached user profile'}, null);
+	    callback(null);
 	    return;
 	}
 
+	var succeeded = false;
 	var userProfile = storage['tokens'].user;
 	var email = userProfile.preferred_username;
 	var tid = userProfile.tid; 
@@ -80,39 +80,35 @@ authentication.refreshTokens = function(callback) {
 	ifr.src = urlNavigate;
 	ifr.style.display = 'none';
 
-	var redirectListener = function (details) {
-	    var redirectUrl = details.redirectUrl;
+	var redirectListener = function(details) {
+	    if (details.redirectUrl.startsWith(authentication._config.REDIRECT_URI)) {
+		var requestInfo = authentication._getRequestInfo(details.redirectUrl);
 
-	    if (redirectUrl.startWith(authentication._config.REDIRECT_URI)) {
-		chrome.webRequest.OnBeforeRedirect.removeListener(redirectListener);
-		var requestInfo = authentication._getRequestInfo(redirectUrl);
-
-		if (!requestInfo) {
-		    callback({error: 'Error: no valid tokens obtained'}, null);
-		    return;
-		}
-
-		chrome.storage.local.set({'tokens': requestInfo}, function() {
-		    if (chrome.runtime.lastError) {
-			console.log(chrome.runtime.lastError.message);
-		    }
+		if (requestInfo) {
+		    succeeded = true;
+		    chrome.storage.local.set({'tokens': requestInfo}, function() {
+			if (chrome.runtime.lastError) {
+			    console.log(chrome.runtime.lastError.message);
+			}
 		    
-		    callback(null, requestInfo);
-		});
+			callback(requestInfo.access_token);
+		    });
+		}
 	    }
 	};
 	
-	chrome.webRequest.onBeforeRedirect.addListener(redirectListener, {urls: [authentication._config.AUTH_ENDPOINT + '*']});
-	
-	document.getElementsByTagName('body')[0].appendChild(ifr);
-	window.setTimeOut(function() {
-	    chrome.webRequest.OnBeforeRedirect.removeListener(redirectListener);
-	    document.getElementByTagName('body')[0].removeChild(ifr);
+	window.setTimeout(function() {
+	    //chrome.webRequest.OnBeforeRedirect.removeListener(function(){});
+	    document.getElementsByTagName('body')[0].removeChild(ifr);
 	    
-	    if (callback) {
-		callback({error: 'Time out: refresh tokens'}, null);
+	    if (!succeeded) {
+		console.log('Refreshing access tokens: Timeout');
+		callback(null);
 	    }
-	}, 5000);
+	}, constants.REFRESH_TOKENS_TIMEOUT);
+
+	chrome.webRequest.onBeforeRedirect.addListener(redirectListener, {urls: [urlNavigate]});
+	document.getElementsByTagName('body')[0].appendChild(ifr);
     });
     
 };
@@ -135,7 +131,7 @@ authentication.logout = function() {
     });
 };
 
-authentication.getAccessToken = function(callback) {
+authentication.getAccessToken = function(onSuccess) {
     chrome.storage.local.get('tokens', function(storage) {
 	if (chrome.runtime.lastError) {
 	    console.log(chrome.runtime.lastError.message);
@@ -145,8 +141,20 @@ authentication.getAccessToken = function(callback) {
 	if (!tokens) {
 	    chrome.runtime.sendMessage({method: 'ui.login.require'});
 	} else {
-	    callback(tokens.access_token);
+	    onSuccess(tokens.access_token);
 	}
+    });
+};
+
+authentication.getUserInfo = function(callback) {
+    chrome.storage.local.get('tokens', function(storage) {
+	var user = {};
+	var tokens = storage['tokens'];
+	if (tokens && tokens.user) {
+	    user = tokens.user;
+	}
+
+	callback(user);
     });
 };
 
