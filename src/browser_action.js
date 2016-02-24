@@ -24,6 +24,11 @@ browserAction.initializeUIContents_ = function() {
 };
 
 browserAction.registerButtonClickHandlers_ = function() {
+    // light dimiss
+    $(document).on('click', function(event) {
+	$('.event-details:visible').slideUp(browserAction.CONSTANTS.SLIDE_DELAY);
+    });
+
     $('#authorization_button').on('click', function() {
 	chrome.runtime.sendMessage({'method': 'authentication.tokens.request'}, browserAction.showOrHideLogonMessage_);
     });
@@ -51,6 +56,11 @@ browserAction.registerButtonClickHandlers_ = function() {
     $('#settings').on('click', function() {
 	chrome.tabs.create({'url': 'options.html'});
     });
+};
+
+
+browserAction.promptForLogonIfNotAuthenticated_ = function() {
+    
 };
 
 /**
