@@ -5,6 +5,7 @@ var background = {};
  */
 background.initialize = function() {
     background.addMessageListener_();
+    scheduler.initialize();
 };
 
 

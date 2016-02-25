@@ -162,10 +162,9 @@ section {
 }
 
 .preview-subject {
-    display: flex;
-    flex: 1;
     font-size: 14px;
     white-space: nowrap;
+    text-overflow: ellipsis;
     overflow: hidden;
     padding: 2px 6px;
     margin-right: 2px;

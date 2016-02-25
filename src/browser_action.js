@@ -58,11 +58,6 @@ browserAction.registerButtonClickHandlers_ = function() {
     });
 };
 
-
-browserAction.promptForLogonIfNotAuthenticated_ = function() {
-    
-};
-
 /**
  * Show all events in the next few days starting from today;
  * for a multi-day event, we display it in each day it occurs;

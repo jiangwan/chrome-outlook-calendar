@@ -14,10 +14,10 @@
 
   "permissions": [
     "contextMenus",
-    "identity",
     "storage",
     "tabs",
     "webRequest",
+    "alarms",
     "http://*/*",
     "https://*/*",
     "https://login.microsoftonline.com/*",
@@ -33,6 +33,7 @@
       "src/decode.js",
       "src/authentication.js",
       "src/calendar.js",
+      "src/scheduler.js",
       "src/background.js"
     ],
     "persistent": true
