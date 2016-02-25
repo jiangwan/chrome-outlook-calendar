@@ -189,6 +189,11 @@ section {
     padding: 8px 14px 0 14px;
 }
 
+.event-details a {
+    outline: none;
+    color: #000000;
+}
+
 .event-timeRange {
     font-size: 14px;
     padding: 6px 12px;

@@ -16,11 +16,11 @@ browserAction.initialize = function() {
     browserAction.addMessageListener_();
 
     // this is only intended for first time loading when there is no cached token.
-    chrome.runtime.sendMessage({'method': 'authentication.accessToken.get'}, browserAction.showOrHideLogonMessage_);
+    chrome.runtime.sendMessage({method: 'authentication.accessToken.get'}, browserAction.showOrHideLogonMessage_);
 };
 
 browserAction.initializeUIContents_ = function() {
-    $('#calendar_url').attr('href', constants.CALENDAR_URL);
+    $('#calendar_url').attr('href', constants.CALENDAR_CONSUMERS_URL);
 };
 
 browserAction.registerButtonClickHandlers_ = function() {
@@ -126,10 +126,14 @@ browserAction.createEventElement_ = function(event, currentDay) {
 
 	    var backgroundColor = util.getCalendarColor(event.color);
 
-	    $('<div>').addClass('event-details-subject')
-		.text(event.subject)
-		.css({'background-color': backgroundColor})
-		.appendTo(eventDetails);
+	    $('<a>').attr({
+		'href': event.url,
+		'target': '_blank'
+	    }).append($('<div>')
+		      .addClass('event-details-subject')
+		      .text(event.subject)
+		      .css({'background-color': backgroundColor}))
+	    .appendTo(eventDetails);
 
 	    var timeRangeString = util.getTimeRangeString(
 		moment.utc(event.startTimeUTC).local(),
