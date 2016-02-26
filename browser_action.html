@@ -12,7 +12,7 @@
 	<header>
 	    <div id="action-bar">
 		<img src="icons/ic_refresh_white_24dp.png" id="sync_now">
-		<img src="icons/Change-User-white-96.png" id="logout_button">
+		<img src="icons/Change-User-white-96.png" id="account">
 		<img src="icons/ic_settings_white_24dp.png" style="display:none" id="settings">
 	    </div>
 	    <div id="popup-title">
@@ -22,7 +22,13 @@
 	    </div>
 	</header>
 	<div id="header_placeholder"></div>
-	<div id="header-popup"></div>
+	<div id="account-page" class="account">
+	    <div id="account-displayName" class="account-content"></div>
+	    <div id="account-email" class="account-content"></div>
+	    <div class="button-wrapper">
+		<button id="logout-button" class="login_button">Sign out</button>
+	    </div>
+	</div>
 	<div id="content-blocker"></div>
 	<div id="error" class="error"></div>
 	<section>

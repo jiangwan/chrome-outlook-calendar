@@ -11,7 +11,7 @@ authentication._config = {
     },
     CLIENT_ID: '0181f97d-6f49-4bad-9134-86cc2f3b014d',
     REDIRECT_URI: 'https://outlook-extension.azurewebsites.net/',
-    SCOPES: 'openid offline_access https://outlook.office.com/Calendars.ReadWrite',
+    SCOPES: 'openid email profile offline_access user.read https://outlook.office.com/Calendars.ReadWrite',
     RESPONSE_TYPE: 'id_token+token'
 };
 

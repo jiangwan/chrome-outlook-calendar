@@ -44,9 +44,16 @@ browserAction.registerButtonClickHandlers_ = function() {
 	}
     });
 
+    $('#account').on('click', function() {
+	$('#account-page').slideToggle(browserAction.CONSTANTS.SLIDE_DELAY);
+	$('#content-blocker').toggle();
+    });
+    
+
     $('#logout_button').on('click', function() {
 	chrome.runtime.sendMessage({method: 'authentication.clear'});
 	browserAction.showOrHideLogonMessage_(false /*authorized*/);
+	$('#account-page').hide();
 	$('#content-blocker').hide();
 	$('#header-popup').hide();
 	$('#error').hide();
@@ -188,13 +195,21 @@ browserAction.createEventElement_ = function(event, currentDay) {
     return eventContainer;
 };
 
+browserAction._initAccount = function(user) {
+    var name = user.name || 'Not available';
+    var email = user.preferred_username || 'Not available';
+    $('#account-displayName').text(name);
+    $('#account-email').text(email);
+};
+
 browserAction.showOrHideLogonMessage_ = function(authorized) {
     if (authorized) {
 	$('#logon').hide();
 	$('#action-bar').show();
 	$('#calendar-events').show();
 
-	chrome.runtime.sendMessage({'method': 'calendar.allEvents.get'}, browserAction.showCalendarEvents_);
+	chrome.runtime.sendMessage({method: 'calendar.allEvents.get'}, browserAction.showCalendarEvents_);
+	chrome.runtime.sendMessage({method: 'authentication.user.get'}, browserAction._initAccount);
     } else {
 	$('#logon').show();
 	$('#action-bar').hide();
