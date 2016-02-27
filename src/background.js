@@ -30,8 +30,12 @@ background.addMessageListener_ = function() {
 	      });
 	      break;
 
-	    case 'authentication.user.get':
-	      authentication.getUserInfo(callback);
+	    case 'account.user.get':
+	      account.getUserInfo(callback);
+	      break;
+
+	    case 'account.photo.get':
+	      account.getUserPhoto(callback);
 	      break;
 
 	    case 'calendar.calendarList.get':

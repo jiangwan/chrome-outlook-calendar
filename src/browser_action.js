@@ -50,14 +50,9 @@ browserAction.registerButtonClickHandlers_ = function() {
     });
     
 
-    $('#logout_button').on('click', function() {
+    $('#logout-button').on('click', function() {
 	chrome.runtime.sendMessage({method: 'authentication.clear'});
 	browserAction.showOrHideLogonMessage_(false /*authorized*/);
-	$('#account-page').hide();
-	$('#content-blocker').hide();
-	$('#header-popup').hide();
-	$('#error').hide();
-	$('#calendar-events').hide();
     });
 
     $('#settings').on('click', function() {
@@ -195,11 +190,15 @@ browserAction.createEventElement_ = function(event, currentDay) {
     return eventContainer;
 };
 
-browserAction._initAccount = function(user) {
+browserAction._showAccountInfo = function(user) {
     var name = user.name || 'Not available';
     var email = user.preferred_username || 'Not available';
     $('#account-displayName').text(name);
     $('#account-email').text(email);
+};
+
+browserAction._showAccountPhoto = function(imgDataUrl) {
+    $('#account-photo').attr('src', 'data:image/jpeg;base64,' + imgDataUrl);
 };
 
 browserAction.showOrHideLogonMessage_ = function(authorized) {
@@ -209,10 +208,16 @@ browserAction.showOrHideLogonMessage_ = function(authorized) {
 	$('#calendar-events').show();
 
 	chrome.runtime.sendMessage({method: 'calendar.allEvents.get'}, browserAction.showCalendarEvents_);
-	chrome.runtime.sendMessage({method: 'authentication.user.get'}, browserAction._initAccount);
+	chrome.runtime.sendMessage({method: 'account.user.get'}, browserAction._showAccountInfo);
+	chrome.runtime.sendMessage({method: 'account.photo.get'}, browserAction._showAccountPhoto);
     } else {
 	$('#logon').show();
 	$('#action-bar').hide();
+	$('#calendar-events').hide();
+
+	$('#account-page').hide();
+	$('#content-blocker').hide();
+	$('#error').hide();
 	$('#calendar-events').hide();
     }
 };

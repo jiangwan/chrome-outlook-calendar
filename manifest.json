@@ -33,6 +33,7 @@
       "src/decode.js",
       "src/authentication.js",
       "src/calendar.js",
+      "src/account.js",
       "src/scheduler.js",
       "src/background.js"
     ],
