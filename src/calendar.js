@@ -13,28 +13,32 @@ calendar.DAYS_TO_OBSERVE_ = 7;
  * Sync calendar list from server; once succeeded, sync all calendar events too;
  */
 calendar.syncCalendarList = function() {
-    authentication.getAccessToken(calendar._getCalendarsWithRetry(0 /*retryCount*/));	 
+    chrome.runtime.sendMessage({'method': 'ui.refresh.start'});
+    authentication.getAccessToken(calendar.getCalendarsWithRetry_(0 /*retryCount*/));	 
 };
 
-calendar._getCalendarsWithRetry = function(retryCount) {
-    var onFailure = function(retry) {
+calendar.getCalendarsWithRetry_ = function(retryCount) {
+    var onFailure = function(retry, response) {
 	if (retry < constants.REFRESH_TOKENS_RETRY_LIMIT) {
 	    console.log('Unable to sync calendar list. Attempt: ' + retry);
 		
 	    window.setTimeout(function(callback) {
 		authentication.refreshTokens(callback);
-	    }, constants.REFRESH_TOKENS_RETRY_INTERVAL, calendar._getCalendarsWithRetry(retry + 1));
+	    }, constants.REFRESH_TOKENS_RETRY_INTERVAL, calendar.getCalendarsWithRetry_(retry + 1));
 	} else {
 	    chrome.runtime.sendMessage({method: 'ui.refresh.stop'});
-
-	    // for now we just ask for re-login for sync failure
-	    chrome.runtime.sendMessage({method: 'ui.authStatus.updated', authorized: false});
+	    
+	    if (response && response.statusCode === 401) {
+		calendar.clearCaches_();
+		chrome.runtime.sendMessage({'method': 'ui.authStatus.updated',
+					    'authorized': false});
+	    }
 	}
     };
 
     return function(accessToken) {
 	if (!accessToken) {
-	    onFailure(retryCount);
+	    onFailure(retryCount, null);
 	    return;
 	}
 
@@ -64,7 +68,7 @@ calendar._getCalendarsWithRetry = function(retryCount) {
 	    });
 	})
 	.fail(function(response) {
-	    onFailure(this.retry);
+	    onFailure(this.retry, response);
 	});
     };
 };
@@ -80,22 +84,26 @@ calendar.syncEvents = function() {
 	}
 
 	var calendarList = storage['calendar_list'];
-	authentication.getAccessToken(calendar._retrieveEventsWithRetry(calendarList, 0 /*retryCount*/));
+	authentication.getAccessToken(calendar.retrieveEventsWithRetry_(calendarList, 0 /*retryCount*/));
     });
 };
 
-calendar._retrieveEventsWithRetry = function(calendars, retryCount) {
+calendar.retrieveEventsWithRetry_ = function(calendars, retryCount) {
     var reject = (function(calendars, retryCount) {
 	return function(response) {
-	    if (count < constants.REFRESH_TOKENS_RETRY_LIMIT) {
+	    if (retryCount < constants.REFRESH_TOKENS_RETRY_LIMIT) {
 		window.setTimeout(function(callback) {
 		    authentication.refreshTokens(callback);
-		}, constants.REFRESH_TOKENS_RETRY_INTERVAL, calendar._retrieveEventsWithRetry(calendars, retryCount + 1));
+		}, 
+		constants.REFRESH_TOKENS_RETRY_INTERVAL,
+		calendar.retrieveEventsWithRetry_(calendars, retryCount + 1));
 	    } else {
 		chrome.runtime.sendMessage({method: 'ui.refresh.stop'});
 
 		if (response.statusCode === 401) {
-		    chrome.runtime.sendMessage({method: 'ui.authStatus.updated', authorized: false});
+		    calendar.clearCaches_();
+		    chrome.runtime.sendMessage({'method': 'ui.authStatus.update',
+						'authorized': false});
 		}
 	    }
 	};
@@ -111,7 +119,7 @@ calendar._retrieveEventsWithRetry = function(calendars, retryCount) {
 	var promises = [];
 	
 	for (var id in calendars) {
-	    promises.push(calendar._syncCalendarEvents(accessToken, calendars[id]));
+	    promises.push(calendar.syncCalendarEvents_(accessToken, calendars[id]));
 	}
 
 	var timeStamp = moment().toISOString();
@@ -133,20 +141,22 @@ calendar._retrieveEventsWithRetry = function(calendars, retryCount) {
 		}
 
 		chrome.runtime.sendMessage({'method': 'ui.events.update'});
+		chrome.runtim.sendMessage({'method': 'ui.refresh.stop'});
 	    });
 	}, reject);
     };
 };
 
-calendar._syncCalendarEvents = function(accessToken, calendarInfo) {
+calendar.syncCalendarEvents_ = function(accessToken, calendarInfo) {
     var calendar_id = calendarInfo.id;
     var color = calendarInfo.color;
 
     return new Promise(function(resolve, reject) {
-	var now = moment().utc();
-	var start_datetime = now.toISOString();
-	var end_datetime = now.add(calendar.DAYS_TO_OBSERVE_, 'days').toISOString();
-	var eventQueryUrl = calendar.CALENDAR_EVENT_API_URL_.replace('{calendar_id}', encodeURIComponent(calendar_id)).
+	var today = utils.getDateOfToday();
+	var start_datetime = today.toISOString();
+	var end_datetime = today.add(calendar.DAYS_TO_OBSERVE_, 'days').toISOString();
+	var eventQueryUrl = calendar.CALENDAR_EVENT_API_URL_.
+	    replace('{calendar_id}', encodeURIComponent(calendar_id)).
 	    replace('{start_datetime}', start_datetime).
 	    replace('{end_datetime}', end_datetime)
 	+ '&$top=9999'; // bug: without specifying this parameter, the server always returns no more than 10 events
@@ -192,16 +202,20 @@ calendar.loadEvents = function(callback) {
 	}
 
 	var events = storage['calendar_allEvents'];
-	var sortedIndices = calendar._sortEventsByDate(events);
+	var sortedIndices = calendar.sortEventsByDate_(events);
 	callback({'events': events, 'indices': sortedIndices});
     });
+};
+
+calendar.clearCaches_ = function() {
+    chrome.storage.local.clear();
 };
 
 /**
  * Classify events by date and returns a two dimensional array storing
  * indices of events for each day.
  */ 
-calendar._sortEventsByDate = function(events) {
+calendar.sortEventsByDate_ = function(events) {
     var container = new Array(calendar.DAYS_TO_OBSERVE_);
     for (var i = 0; i < calendar.DAYS_TO_OBSERVE_; i++) {
 	container[i] = [];

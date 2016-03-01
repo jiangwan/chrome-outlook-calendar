@@ -22,3 +22,5 @@ constants.CALENDAR_COLOR = {
     'LightOrange': 'rgb(252,171,115)',
     'LightYellow': 'rgb(244,208,122)'
 };
+
+constants.DEFAULT_CALENDAR_COLOR = '#ffffff';

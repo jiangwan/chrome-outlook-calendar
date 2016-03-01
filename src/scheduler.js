@@ -5,27 +5,26 @@
  */
 var scheduler = {};
 
-scheduler._name = 'calendar_scheduler';
+scheduler.name_ = 'calendar_scheduler';
 
 scheduler.INTERVAL = 30; // minutes
 
 scheduler.initialize = function() {
     chrome.alarms.onAlarm.addListener(function(alarm) {
-	if (alarm.name === scheduler._name) {
-	    scheduler._updateCalendar();
+	if (alarm.name === scheduler.name_) {
+	    scheduler.updateCalendar_();
 	}
     });
 
-    chrome.alarms.get(scheduler._name, function(alarm) {
-	if (!alarm || alarm.name != scheduler._name) {
-	    chrome.alarms.create(scheduler._name, {
+    chrome.alarms.get(scheduler.name_, function(alarm) {
+	if (!alarm || alarm.name != scheduler.name_) {
+	    chrome.alarms.create(scheduler.name_, {
 		delayInMinutes: scheduler.INTERVAL,
 		periodInMinutes: scheduler.INTERVAL});
 	}
     });
 };
 
-scheduler._updateCalendar = function() {
-    chrome.runtime.sendMessage({method: 'ui.refresh.start'});
+scheduler.updateCalendar_ = function() {
     calendar.syncCalendarList();
 };

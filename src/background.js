@@ -1,15 +1,14 @@
 var background = {};
 
 /**
- * Initialize the event page script
+ * Initialize the background page script
  */
 background.initialize = function() {
-    background.addMessageListener_();
+    background.addMessageListeners_();
     scheduler.initialize();
 };
 
-
-background.addMessageListener_ = function() {
+background.addMessageListeners_ = function() {
     chrome.runtime.onMessage.addListener(function(message, sender, callback) {
 	switch(message.method)  {
 	    case 'authentication.accessToken.get':
@@ -21,12 +20,9 @@ background.addMessageListener_ = function() {
 	      chrome.storage.local.clear();
 	      break;
 
-	    case 'authentication.tokens.request':
+	    case 'authentication.tokens.renew':
 	      authentication.login(function(accessToken) {
 		  calendar.syncCalendarList();
-		  if (callback) {
-		      callback(accessToken);
-		  }
 	      });
 	      break;
 
@@ -45,7 +41,6 @@ background.addMessageListener_ = function() {
 	    case 'calendar.allEvents.get':
 	      calendar.loadEvents(callback);
 	      break;
-
 	}
 
 	return true;

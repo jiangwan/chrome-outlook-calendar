@@ -1,36 +1,44 @@
 /**
  * Script that supports browser actions.
  */
-var browserAction = {};
+var browser_action = {};
 
-browserAction.CONSTANTS = {
-    SLIDE_DELAY: 100
-};
+browser_action.ANIMATION_DURATION_ = 100;
 
 /**
  * Initialize the popup page
  */
-browserAction.initialize = function() {
-    browserAction.initializeUIContents_();
-    browserAction.registerButtonClickHandlers_();
-    browserAction.addMessageListener_();
+browser_action.initialize = function() {
+    browser_action.initializeUIContents_();
+    browser_action.registerEventHandlers_();
+    browser_action.addMessageListeners_();
 
-    // this is only intended for first time loading when there is no cached token.
-    chrome.runtime.sendMessage({method: 'authentication.accessToken.get'}, browserAction.showOrHideLogonMessage_);
+    chrome.runtime.sendMessage({method: 'authentication.accessToken.get'},
+			       browser_action.refreshPage_);
 };
 
-browserAction.initializeUIContents_ = function() {
+browser_action.initializeUIContents_ = function() {
+    // set default calendar link which should be updated
+    // depending on user types once logged in
     $('#calendar_url').attr('href', constants.CALENDAR_CONSUMERS_URL);
 };
 
-browserAction.registerButtonClickHandlers_ = function() {
-    // light dimiss
+browser_action.registerEventHandlers_ = function() {
     $(document).on('click', function(event) {
-	$('.event-details:visible').slideUp(browserAction.CONSTANTS.SLIDE_DELAY);
+	// light dismiss any visible event details section
+	$('.event-details:visible').slideUp(browser_action.ANIMATION_DURATION_);
+
+	// light dismiss account page if visible
+	if ($('#account-page').is(':visible') &&
+	    !$(event.target).closest($('#account')).length &&
+	    !$(event.target).closest($('#account-page')).length) {
+	    $('#account-page').slideUp(browser_action.ANIMATION_DURATION_);
+	    $('#content-blocker').hide();
+	}
     });
 
     $('#authorization_button').on('click', function() {
-	chrome.runtime.sendMessage({'method': 'authentication.tokens.request'}, browserAction.showOrHideLogonMessage_);
+	chrome.runtime.sendMessage({method: 'authentication.tokens.renew'});
     });
 
     $('#create_account').on('click', function() {
@@ -39,32 +47,97 @@ browserAction.registerButtonClickHandlers_ = function() {
 
     $('#sync_now').on('click', function() {
 	if (!$(this).hasClass('spin')) {
-	    browserAction.refreshStart_();
-	    chrome.runtime.sendMessage({'method': 'calendar.calendarList.get'});
+	    chrome.runtime.sendMessage({method: 'calendar.calendarList.get'});
 	}
     });
 
     $('#account').on('click', function() {
-	$('#account-page').slideToggle(browserAction.CONSTANTS.SLIDE_DELAY);
+	$('#account-page').slideToggle(browser_action.ANIMATION_DURATION_);
 	$('#content-blocker').toggle();
     });
-    
 
     $('#logout-button').on('click', function() {
-	chrome.runtime.sendMessage({method: 'authentication.clear'});
-	browserAction.showOrHideLogonMessage_(false /*authorized*/);
+	browser_action.logout_();
     });
 
+    /** Option page is not yet available
     $('#settings').on('click', function() {
 	chrome.tabs.create({'url': 'options.html'});
     });
+    */
+};
+
+browser_action.addMessageListeners_ = function() {
+    chrome.runtime.onMessage.addListener(function(message, sender, callback) {
+	switch(message.method) {
+	    case 'ui.authStatus.updated':
+	      browser_action.refreshPage_(message.authorized);
+	      break;
+
+	    case 'ui.events.update':
+	      chrome.runtime.sendMessage({method: 'calendar.allEvents.get'},
+					 browser_action.showCalendarEvents_);
+	      browser_action.refreshStop_();
+	      break;
+
+	    case 'ui.refresh.start':
+	      browser_action.refreshStart_();
+	      break;
+
+	    case 'ui.refresh.stop':
+	      browser_action.refreshStop_();
+	      break;
+	}
+
+	return true;
+    });
+};
+
+browser_action.refreshPage_ = function(authenticated) {
+    if (authenticated) {
+	browser_action.showCalendarPage_();
+	browser_action.showCalendarContents_();
+    } else {
+	browser_action.logout_();
+    }
+};
+
+browser_action.showCalendarPage_ = function() {
+    $('#account-page').hide();
+    $('#content-blocker').hide();
+    $('#error').hide();
+    $('#logon').hide();
+
+    $('#action-bar').show();
+    $('#calendar-events').show();
+};
+
+browser_action.showCalendarContents_ = function() {
+    chrome.runtime.sendMessage({method: 'calendar.allEvents.get'}, browser_action.showCalendarEvents_);
+    chrome.runtime.sendMessage({method: 'account.user.get'}, browser_action.showAccountInfo_);
+    chrome.runtime.sendMessage({method: 'account.photo.get'}, browser_action.showAccountPhoto_);
+};
+
+browser_action.showLoginPage_ = function() {
+    $('#action-bar').hide();
+    $('#account-page').hide();
+    $('#content-blocker').hide();
+    $('#error').hide();
+    $('#calendar-events').hide();
+
+    $('#logon').show();
+};
+
+browser_action.logout_ = function() {
+    chrome.runtime.sendMessage({method: 'authentication.clear'});
+    browser_action.showLoginPage_();
 };
 
 /**
  * Show all events in the next few days starting from today;
  * for a multi-day event, we display it in each day it occurs;
  */
-browserAction.showCalendarEvents_ = function(data) {
+browser_action.showCalendarEvents_ = function(data) {
     $('#calendar-events').empty();
 
     var events = data.events;
@@ -88,22 +161,27 @@ browserAction.showCalendarEvents_ = function(data) {
 	    }
 
 	    $.each(indicesOfDay, function(j, index) {
-		browserAction.createEventElement_(events[index], date).appendTo($('#calendar-events'));
+		browser_action.createEventElement_(
+		    events[index], date).appendTo($('#calendar-events'));
 	    });
 	}
     });
 };
 
-browserAction.createEventElement_ = function(event, currentDay) {
+browser_action.createEventElement_ = function(event, currentDay) {
     var eventContainer = $('<div>').addClass('event-container');
 
     // create event preview and detals divs as children of event container box
-    var eventPreview = $('<div>').addClass('event-preview').appendTo(eventContainer);
+    var eventPreview = $('<div>')
+	.addClass('event-preview')
+	.appendTo(eventContainer);
     var eventDetails = $('<div>').appendTo(eventContainer);
 
     // event preview: start time
     var localStartTime = '';
-    var start = util.convertEventTimeFromUtcToLocal(event.isAllday, event.startTimeUTC);
+    var start = util.convertEventTimeFromUtcToLocal(
+	event.isAllday,
+	event.startTimeUTC);
     var treatedAsAllDay = event.isAllDay || start.isBefore(currentDay,'day');
     
     if (!treatedAsAllDay) {
@@ -118,7 +196,10 @@ browserAction.createEventElement_ = function(event, currentDay) {
     // event preview: subject
     $('<div>').addClass('preview-subject')
 	.text(event.subject)
-	.css({'background-color': treatedAsAllDay ? util.getCalendarColor(event.color) : '#ffffff'})
+	.css({'background-color': 
+	      treatedAsAllDay ?
+	      util.getCalendarColor(event.color) :
+	      constants.DEFAULT_CALENDAR_COLOR})
 	.appendTo(eventPreview);
 
     // lazy load event details
@@ -148,10 +229,14 @@ browserAction.createEventElement_ = function(event, currentDay) {
 		.appendTo(eventDetails);
 
 	    if (event.location) {
-		var locationDiv = $('<div>').addClass('event-location').appendTo(eventDetails);
-		$('<div>').addClass('event-location-icon')
+		var locationDiv = $('<div>')
+		    .addClass('event-location')
+		    .appendTo(eventDetails);
+		$('<div>')
+		    .addClass('event-location-icon')
 		    .append($('<img>')
-			    .attr({'src': chrome.extension.getURL('icons/Location-Map-icon.png'), 'alt': 'Location'}))
+			    .attr({'src': chrome.extension.getURL('icons/Location-Map-icon.png'),
+				   'alt': 'Location'}))
 		    .appendTo(locationDiv);
 	   
 		$('<div>').addClass('event-location-content')
@@ -159,10 +244,13 @@ browserAction.createEventElement_ = function(event, currentDay) {
 		    .appendTo(locationDiv);
 	    }
 
-	    var organizerDiv = $('<div>').addClass('event-organizer').appendTo(eventDetails);
+	    var organizerDiv = $('<div>')
+		.addClass('event-organizer')
+		.appendTo(eventDetails);
 	    $('<div>').addClass('event-organizer-icon')
 		.append($('<img>')
-			.attr({'src': chrome.extension.getURL('icons/Contacts-64.png'), 'alt': 'Organizer'}))
+			.attr({'src': chrome.extension.getURL('icons/Contacts-64.png'),
+			       'alt': 'Organizer'}))
 		.appendTo(organizerDiv);
 
 	    $('<div>').addClass('event-location-content')
@@ -180,9 +268,9 @@ browserAction.createEventElement_ = function(event, currentDay) {
 
 	if (!$(event.target).closest(eventDetails).length) {
 	    var wasDetailsOpen = eventDetails.is(':visible');
-	    $('.event-details:visible').slideUp(browserAction.CONSTANTS.SLIDE_DELAY);
+	    $('.event-details:visible').slideUp(browser_action.ANIMATION_DURATION_);
 	    if (!wasDetailsOpen) {
-		eventDetails.slideDown(browserAction.CONSTANTS.SLIDE_DELAY);
+		eventDetails.slideDown(browser_action.ANIMATION_DURATION_);
 	    }
 	}
     });
@@ -190,79 +278,23 @@ browserAction.createEventElement_ = function(event, currentDay) {
     return eventContainer;
 };
 
-browserAction._showAccountInfo = function(user) {
-    var name = user.name || 'Not available';
-    var email = user.preferred_username || 'Not available';
+browser_action.showAccountInfo_ = function(user) {
+    var name = user.name || '';
+    var email = user.preferred_username || '';
     $('#account-displayName').text(name);
     $('#account-email').text(email);
 };
 
-browserAction._showAccountPhoto = function(imgDataUrl) {
+browser_action.showAccountPhoto_ = function(imgDataUrl) {
     $('#account-photo').attr('src', 'data:image/jpeg;base64,' + imgDataUrl);
 };
 
-browserAction.showOrHideLogonMessage_ = function(authorized) {
-    if (authorized) {
-	$('#logon').hide();
-	$('#action-bar').show();
-	$('#calendar-events').show();
-
-	chrome.runtime.sendMessage({method: 'calendar.allEvents.get'}, browserAction.showCalendarEvents_);
-	chrome.runtime.sendMessage({method: 'account.user.get'}, browserAction._showAccountInfo);
-	chrome.runtime.sendMessage({method: 'account.photo.get'}, browserAction._showAccountPhoto);
-    } else {
-	$('#logon').show();
-	$('#action-bar').hide();
-	$('#calendar-events').hide();
-
-	$('#account-page').hide();
-	$('#content-blocker').hide();
-	$('#error').hide();
-	$('#calendar-events').hide();
-    }
-};
-
-browserAction.refreshStart_ = function() {
+browser_action.refreshStart_ = function() {
     $('#sync_now').addClass('spin');
 };
 
-browserAction.refreshStop_ = function() {
+browser_action.refreshStop_ = function() {
     $('#sync_now').removeClass('spin');
-};
-
-browserAction.showErrorMessage_ = function(error) {
-    $('#error').text(error);
-    $('#error').show();
-};
-
-browserAction.hideErrorMessage_ = function() {
-    $('#error').hide();
-};
-
-browserAction.addMessageListener_ = function() {
-    chrome.runtime.onMessage.addListener(function(message, sender, callback) {
-	switch(message.method) {
-	    case 'ui.authStatus.updated':
-	      browserAction.showOrHideLogonMessage_(message.authorized);
-	      break;
-
-	    case 'ui.events.update':
-	      browserAction.refreshStop_();
-	      browserAction.hideErrorMessage_();
-	      chrome.runtime.sendMessage({'method': 'calendar.allEvents.get'}, browserAction.showCalendarEvents_);
-	      break;
-
-	    case 'ui.refresh.stop':
-	      browserAction.refreshStop_();
-	      break;
-
-	    case 'ui.error.show':
-	      browserAction.showErrorMessage_(message.error);
-	      break;
-	}
-
-	return true;
-    });
 };
 
 
@@ -270,5 +302,5 @@ browserAction.addMessageListener_ = function() {
  * Initailize functionality when the popup page is loaded
  */
 window.addEventListener('load', function() {
-    browserAction.initialize();
+    browser_action.initialize();
 }, false);
