@@ -16,7 +16,7 @@ account.getUserInfo = function(callback) {
 
 account.getUserPhoto = function(callback) {
    chrome.storage.local.get('account_userPhotoDataUrl', function(storage) {
-       if (chrome.runtime.lastError || storage['account_userPhoto'] === undefined) {
+       if (chrome.runtime.lastError || storage['account_userPhotoDataUrl'] === undefined) {
 	   console.log('Failed to fectch cached user photo');
 	   account.syncUserPhoto_(callback);
 	   return;
