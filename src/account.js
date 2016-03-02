@@ -45,11 +45,11 @@ account.syncUserPhoto_ = function(callback) {
 	// avoid using cached image by adding a random query string. This is hacky as
 	// it doesn't really flush cached images. It should be considered a temporary
 	// workaround.
-	request.open('GET', account.USER_PHOTO_API_URL + '?nonce=' + new Date().toISOString(), true /*async*/);
+	request.open('GET', account.USER_PHOTO_API_URL + '?timestamp=' + new Date().toISOString(), true /*async*/);
 	request.setRequestHeader('Authorization', 'Bearer ' + accessToken);
 	request.responseType = 'arraybuffer';
 
-	request.onload = function() {
+	request.addEventListener('load', function() {
 	    if (this.status === 200) {
 		var bytes = new Uint8Array(this.response);
 		var binaryString = '';
@@ -57,12 +57,14 @@ account.syncUserPhoto_ = function(callback) {
 		    binaryString += String.fromCharCode(element);
 		});
 
-		var imageDataUrl = window.btoa(binaryString);
+		var imageDataUrl = 'data:image/jpeg;base64,' + window.btoa(binaryString);
 		chrome.storage.local.set({'account_userPhotoDataUrl': imageDataUrl}, function() {
 		    callback(imageDataUrl);
 		});
+	    } else {
+		callback('icons/Contacts-64.png');
 	    }
-	};
+	});
 
 	request.send();
     });

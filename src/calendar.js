@@ -28,7 +28,7 @@ calendar.getCalendarsWithRetry_ = function(retryCount) {
 	} else {
 	    chrome.runtime.sendMessage({'method': 'ui.refresh.stop'});
 	    
-	    if (response && response.statusCode === 401) {
+	    if (!response || response.statusCode === 401) {
 		calendar.clearCaches_();
 		chrome.runtime.sendMessage({'method': 'ui.authStatus.updated',
 					    'authorized': false});
@@ -81,8 +81,12 @@ calendar.loadEvents = function(callback) {
 	}
 
 	var events = storage['calendar_allEvents'];
-	var sortedIndices = calendar.sortEventsByDate_(events);
-	callback({'events': events, 'indices': sortedIndices});
+	if (events === undefined) {
+	    calendar.syncCalendarList();
+	} else {
+	    var sortedIndices = calendar.sortEventsByDate_(events);
+	    callback({'events': events, 'indices': sortedIndices});
+	}
     });
 };
 

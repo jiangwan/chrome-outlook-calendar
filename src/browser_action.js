@@ -286,7 +286,7 @@ browser_action.showAccountInfo_ = function(user) {
 };
 
 browser_action.showAccountPhoto_ = function(imgDataUrl) {
-    $('#account-photo').attr('src', 'data:image/jpeg;base64,' + imgDataUrl);
+    $('#account-photo').attr('src', imgDataUrl);
 };
 
 browser_action.refreshStart_ = function() {
