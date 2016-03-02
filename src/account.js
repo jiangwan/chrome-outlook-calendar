@@ -16,9 +16,9 @@ account.getUserInfo = function(callback) {
 
 account.getUserPhoto = function(callback) {
    chrome.storage.local.get('account_userPhotoDataUrl', function(storage) {
-       if (chrome.runtime.lastError || !storage['account_userPhoto']) {
+       if (chrome.runtime.lastError || storage['account_userPhoto'] === undefined) {
 	   console.log('Failed to fectch cached user photo');
-	   account._syncUserPhoto(callback);
+	   account.syncUserPhoto_(callback);
 	   return;
        }
 
@@ -27,7 +27,7 @@ account.getUserPhoto = function(callback) {
    });
 };
 
-account._syncUserPhoto = function(callback) {
+account.syncUserPhoto_ = function(callback) {
     chrome.storage.local.get('tokens', function(storage) {
 	if (chrome.runtime.lastError || !storage['tokens']) {
 	    console.log('Error fetching cached tokens');
@@ -41,7 +41,11 @@ account._syncUserPhoto = function(callback) {
 	// solution in that post doesn't work in this code. So I have to switch to
 	// XMLHttpRequest
 	var request = new XMLHttpRequest();
-	request.open('GET', account.USER_PHOTO_API_URL, true /*async*/);
+	
+	// avoid using cached image by adding a random query string. This is hacky as
+	// it doesn't really flush cached images. It should be considered a temporary
+	// workaround.
+	request.open('GET', account.USER_PHOTO_API_URL + '?nonce=' + new Date().toISOString(), true /*async*/);
 	request.setRequestHeader('Authorization', 'Bearer ' + accessToken);
 	request.responseType = 'arraybuffer';
 

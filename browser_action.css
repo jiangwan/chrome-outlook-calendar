@@ -26,7 +26,7 @@ header {
   z-index: 50;
 }
 
-#popup-title a {
+#title a {
     font-size: 16px;
     color: #fff;
     outline: none;
@@ -34,12 +34,12 @@ header {
     text-decoration: none;
 }
 
-#action-bar {
+#action_bar {
   float: right;
   display: none;
 }
 
-#action-bar img {
+#action_bar img {
   cursor: pointer;
   height: 24px;
   width: 24px;
@@ -62,7 +62,7 @@ header {
     height: 48px;
 }
 
-#account-page {
+#account_page {
     position: fixed;
     width: 100%;
     height: 240px;
@@ -87,7 +87,7 @@ header {
     padding: 4px;
 }
 
-#content-blocker {
+#content_blocker {
     position: fixed;
     width: 100%;
     height: 100%;
@@ -110,7 +110,7 @@ section {
     padding: 0 8px;
 }
 
-#login-logo {
+#signin_logo {
     color: #ffffff;
     text-align: center;
 }
@@ -126,7 +126,7 @@ section {
     text-align: center;
 }
 
-.login_button {
+.primary-button {
     cursor: pointer;
     background-color: #0078d7;
     border: 0;
@@ -140,12 +140,12 @@ section {
     width: 100px;
 }
 
-.login-option {
+.signin-option {
     margin-top: 20px;
     text-align: center;
 }
 
-.login-option span {
+.signin-option span {
     cursor: pointer;
     color: #0078d7;
     font-size: 14px;

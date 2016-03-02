@@ -26,7 +26,7 @@ calendar.getCalendarsWithRetry_ = function(retryCount) {
 		authentication.refreshTokens(callback);
 	    }, constants.REFRESH_TOKENS_RETRY_INTERVAL, calendar.getCalendarsWithRetry_(retry + 1));
 	} else {
-	    chrome.runtime.sendMessage({method: 'ui.refresh.stop'});
+	    chrome.runtime.sendMessage({'method': 'ui.refresh.stop'});
 	    
 	    if (response && response.statusCode === 401) {
 		calendar.clearCaches_();
@@ -73,6 +73,19 @@ calendar.getCalendarsWithRetry_ = function(retryCount) {
     };
 };
 
+calendar.loadEvents = function(callback) {
+    chrome.storage.local.get('calendar_allEvents', function(storage) {
+	if (chrome.runtime.lastError) {
+	    console.log('Error retrieving calendar events from local stroage: ' + chrome.runtime.lastError.message);
+	    return;
+	}
+
+	var events = storage['calendar_allEvents'];
+	var sortedIndices = calendar.sortEventsByDate_(events);
+	callback({'events': events, 'indices': sortedIndices});
+    });
+};
+
 /**
  * Sync all events from server using cached calendar list
  */
@@ -98,7 +111,7 @@ calendar.retrieveEventsWithRetry_ = function(calendars, retryCount) {
 		constants.REFRESH_TOKENS_RETRY_INTERVAL,
 		calendar.retrieveEventsWithRetry_(calendars, retryCount + 1));
 	    } else {
-		chrome.runtime.sendMessage({method: 'ui.refresh.stop'});
+		chrome.runtime.sendMessage({'method': 'ui.refresh.stop'});
 
 		if (response.statusCode === 401) {
 		    calendar.clearCaches_();
@@ -141,7 +154,7 @@ calendar.retrieveEventsWithRetry_ = function(calendars, retryCount) {
 		}
 
 		chrome.runtime.sendMessage({'method': 'ui.events.update'});
-		chrome.runtim.sendMessage({'method': 'ui.refresh.stop'});
+		chrome.runtime.sendMessage({'method': 'ui.refresh.stop'});
 	    });
 	}, reject);
     };
@@ -152,7 +165,7 @@ calendar.syncCalendarEvents_ = function(accessToken, calendarInfo) {
     var color = calendarInfo.color;
 
     return new Promise(function(resolve, reject) {
-	var today = utils.getDateOfToday();
+	var today = util.getDateOfToday();
 	var start_datetime = today.toISOString();
 	var end_datetime = today.add(calendar.DAYS_TO_OBSERVE_, 'days').toISOString();
 	var eventQueryUrl = calendar.CALENDAR_EVENT_API_URL_.
@@ -191,19 +204,6 @@ calendar.syncCalendarEvents_ = function(accessToken, calendarInfo) {
 	    console.log('Error retrieving calendar events from server: ' + response.statusText);
 	    reject({'statusCode': response.status});
 	});
-    });
-};
-
-calendar.loadEvents = function(callback) {
-    chrome.storage.local.get('calendar_allEvents', function(storage) {
-	if (chrome.runtime.lastError) {
-	    console.log('Error retrieving calendar events from local stroage: ' + chrome.runtime.lastError.message);
-	    return;
-	}
-
-	var events = storage['calendar_allEvents'];
-	var sortedIndices = calendar.sortEventsByDate_(events);
-	callback({'events': events, 'indices': sortedIndices});
     });
 };
 

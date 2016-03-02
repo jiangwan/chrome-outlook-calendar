@@ -13,7 +13,7 @@ browser_action.initialize = function() {
     browser_action.registerEventHandlers_();
     browser_action.addMessageListeners_();
 
-    chrome.runtime.sendMessage({method: 'authentication.accessToken.get'},
+    chrome.runtime.sendMessage({'method': 'authentication.accessToken.get'},
 			       browser_action.refreshPage_);
 };
 
@@ -29,16 +29,16 @@ browser_action.registerEventHandlers_ = function() {
 	$('.event-details:visible').slideUp(browser_action.ANIMATION_DURATION_);
 
 	// light dismiss account page if visible
-	if ($('#account-page').is(':visible') &&
+	if ($('#account_page').is(':visible') &&
 	    !$(event.target).closest($('#account')).length &&
-	    !$(event.target).closest($('#account-page')).length) {
-	    $('#account-page').slideUp(browser_action.ANIMATION_DURATION_);
-	    $('#content-blocker').hide();
+	    !$(event.target).closest($('#account_page')).length) {
+	    $('#account_page').slideUp(browser_action.ANIMATION_DURATION_);
+	    $('#content_blocker').hide();
 	}
     });
 
-    $('#authorization_button').on('click', function() {
-	chrome.runtime.sendMessage({method: 'authentication.tokens.renew'});
+    $('#signin_button').on('click', function() {
+	chrome.runtime.sendMessage({'method': 'authentication.tokens.renew'});
     });
 
     $('#create_account').on('click', function() {
@@ -47,16 +47,16 @@ browser_action.registerEventHandlers_ = function() {
 
     $('#sync_now').on('click', function() {
 	if (!$(this).hasClass('spin')) {
-	    chrome.runtime.sendMessage({method: 'calendar.calendarList.get'});
+	    chrome.runtime.sendMessage({'method': 'calendar.calendarList.get'});
 	}
     });
 
     $('#account').on('click', function() {
-	$('#account-page').slideToggle(browser_action.ANIMATION_DURATION_);
-	$('#content-blocker').toggle();
+	$('#account_page').slideToggle(browser_action.ANIMATION_DURATION_);
+	$('#content_blocker').toggle();
     });
 
-    $('#logout-button').on('click', function() {
+    $('#signout_button').on('click', function() {
 	browser_action.logout_();
     });
 
@@ -75,7 +75,7 @@ browser_action.addMessageListeners_ = function() {
 	      break;
 
 	    case 'ui.events.update':
-	      chrome.runtime.sendMessage({method: 'calendar.allEvents.get'},
+	      chrome.runtime.sendMessage({'method': 'calendar.allEvents.get'},
 					 browser_action.showCalendarEvents_);
 	      browser_action.refreshStop_();
 	      break;
@@ -103,33 +103,33 @@ browser_action.refreshPage_ = function(authenticated) {
 };
 
 browser_action.showCalendarPage_ = function() {
-    $('#account-page').hide();
-    $('#content-blocker').hide();
+    $('#account_page').hide();
+    $('#content_blocker').hide();
     $('#error').hide();
     $('#logon').hide();
 
-    $('#action-bar').show();
-    $('#calendar-events').show();
+    $('#action_bar').show();
+    $('#calendar_events').show();
 };
 
 browser_action.showCalendarContents_ = function() {
-    chrome.runtime.sendMessage({method: 'calendar.allEvents.get'}, browser_action.showCalendarEvents_);
-    chrome.runtime.sendMessage({method: 'account.user.get'}, browser_action.showAccountInfo_);
-    chrome.runtime.sendMessage({method: 'account.photo.get'}, browser_action.showAccountPhoto_);
+    chrome.runtime.sendMessage({'method': 'calendar.allEvents.get'}, browser_action.showCalendarEvents_);
+    chrome.runtime.sendMessage({'method': 'account.user.get'}, browser_action.showAccountInfo_);
+    chrome.runtime.sendMessage({'method': 'account.photo.get'}, browser_action.showAccountPhoto_);
 };
 
 browser_action.showLoginPage_ = function() {
-    $('#action-bar').hide();
-    $('#account-page').hide();
-    $('#content-blocker').hide();
+    $('#action_bar').hide();
+    $('#account_page').hide();
+    $('#content_blocker').hide();
     $('#error').hide();
-    $('#calendar-events').hide();
+    $('#calendar_events').hide();
 
     $('#logon').show();
 };
 
 browser_action.logout_ = function() {
-    chrome.runtime.sendMessage({method: 'authentication.clear'});
+    chrome.runtime.sendMessage({'method': 'authentication.clear'});
     browser_action.showLoginPage_();
 };
 
@@ -138,7 +138,7 @@ browser_action.logout_ = function() {
  * for a multi-day event, we display it in each day it occurs;
  */
 browser_action.showCalendarEvents_ = function(data) {
-    $('#calendar-events').empty();
+    $('#calendar_events').empty();
 
     var events = data.events;
     var sortedIndices = data.indices;
@@ -151,18 +151,18 @@ browser_action.showCalendarEvents_ = function(data) {
 	if (hasEvents || date.isSame(today,'day')) {
 	    $('<div>').addClass('date-header')
 		.text(date.format('dddd, MMMM D'))
-		.appendTo($('#calendar-events'));
+		.appendTo($('#calendar_events'));
 
 	    // Only show "no events" only for if there is no event today
 	    if (!hasEvents) {
 		$('<div>').addClass('event-preview')
 		    .text(chrome.i18n.getMessage('no_events'))
-		    .appendTo($('#calendar-events'));
+		    .appendTo($('#calendar_events'));
 	    }
 
 	    $.each(indicesOfDay, function(j, index) {
 		browser_action.createEventElement_(
-		    events[index], date).appendTo($('#calendar-events'));
+		    events[index], date).appendTo($('#calendar_events'));
 	    });
 	}
     });
@@ -281,8 +281,8 @@ browser_action.createEventElement_ = function(event, currentDay) {
 browser_action.showAccountInfo_ = function(user) {
     var name = user.name || '';
     var email = user.preferred_username || '';
-    $('#account-displayName').text(name);
-    $('#account-email').text(email);
+    $('#account_displayName').text(name);
+    $('#account_email').text(email);
 };
 
 browser_action.showAccountPhoto_ = function(imgDataUrl) {

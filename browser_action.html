@@ -10,43 +10,43 @@
     </head>
     <body>
 	<header>
-	    <div id="action-bar">
+	    <div id="action_bar">
 		<img src="icons/ic_refresh_white_24dp.png" id="sync_now">
 		<img src="icons/Change-User-white-96.png" id="account">
 		<img src="icons/ic_settings_white_24dp.png" style="display:none" id="settings">
 	    </div>
-	    <div id="popup-title">
+	    <div id="title">
 		<a id="calendar_url" target="_blank">
 		    <span>Outlook Calendar</span>
 		</a>
 	    </div>
 	</header>
 	<div id="header_placeholder"></div>
-	<div id="account-page" class="account">
+	<div id="account_page" class="account">
 	    <div class="account-photo">
 		<img id="account-photo">
 	    </div>
-	    <div id="account-displayName" class="account-content"></div>
-	    <div id="account-email" class="account-content"></div>
+	    <div id="account_displayName" class="account-content"></div>
+	    <div id="account_email" class="account-content"></div>
 	    <div class="button-wrapper">
-		<button id="logout-button" class="login_button">Sign out</button>
+		<button id="signout_button" class="primary-button">Sign out</button>
 	    </div>
 	</div>
-	<div id="content-blocker"></div>
+	<div id="content_blocker"></div>
 	<div id="error" class="error"></div>
 	<section>
 	    <div id="logon">
-		<div id="login-logo">
+		<div id="signin_logo">
 		    <img alt="Outlook" src="icons/Circled-User-96.png">
 		</div>
 		<div class="button-wrapper">
-	            <button id="authorization_button" class="login_button">Sign In</button>
+	            <button id="signin_button" class="primary-button">Sign In</button>
 		</div>
-		<div class="login-option">
+		<div class="signin-option">
 		    <span id="create_account">Create an account</span>
 		</div>
 	    </div>
-	    <div id="calendar-events"></div>
+	    <div id="calendar_events"></div>
 	</section>
     </body>
 </html>
