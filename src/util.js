@@ -4,7 +4,6 @@ util.getDateOfToday = function() {
     return moment().hour(0).minute(0).second(0).millisecond(0);
 };
 
-
 util.convertEventTimeFromUtcToLocal = function(isAllDay, timeString) {
     if (isAllDay) {
 	var day = moment.utc(timeString);
@@ -13,7 +12,6 @@ util.convertEventTimeFromUtcToLocal = function(isAllDay, timeString) {
 	return moment.parseZone(timeString).local();
     }
 };
-
 
 util.getTimeRangeString = function(start, end, isAllDay) {
     var startString = '', endString = '';
@@ -38,7 +36,6 @@ util.getTimeRangeString = function(start, end, isAllDay) {
     return startString + ' - ' + endString;
 };
 
-
 util.getCalendarColor = function(colorCode) {
-    return  constants.CALENDAR_COLOR[colorCode] || 'rgb(51, 153, 102)';
+    return  constants.CALENDAR_COLOR[colorCode] || constants.DEFAULT_CALENDAR_COLOR;
 };

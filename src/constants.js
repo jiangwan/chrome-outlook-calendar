@@ -1,6 +1,7 @@
 var constants = {};
 
 constants.CALENDAR_CONSUMERS_URL = 'https://outlook.live.com/owa/#path=/calendar';
+
 constants.CALENDAR_ORGANIZATIONS_URL = 'https://outlook.office.com/owa/#path=/calendar';
 
 constants.CREATE_ACCOUNT_URL = 'https://signup.live.com';
@@ -23,4 +24,4 @@ constants.CALENDAR_COLOR = {
     'LightYellow': 'rgb(244,208,122)'
 };
 
-constants.DEFAULT_CALENDAR_COLOR = '#ffffff';
+constants.DEFAULT_CALENDAR_COLOR = '#ccffcc';

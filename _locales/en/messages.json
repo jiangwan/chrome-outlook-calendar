@@ -1,6 +1,36 @@
 {
     "no_events": {
 	"message": "No events",
-	"description": "Message indicating that there is no event for a specific date"
-    }
+	"description": "Message indicating no events for a specific date"
+    },
+
+    "signin_button": {
+	"message": "Sign In",
+	"description": "Prompt user to sign in by clicking the button"
+    },
+
+    "signout_button": {
+	"message": "Sign Out",
+	"description": "Prompt user to sign out by clicking the button"
+    },
+
+    "create_account": {
+	"message": "Create an account",
+	"description": "Prompt a url for user to create a new account"
+    },
+
+    "sync_now": {
+	"message": "refresh",
+	"description": "tooltip of the icon for refreshing calendar contents"
+    },
+
+    "account": {
+	"message": "account",
+        "description": "tooltip of the icon for user account"
+    },
+
+    "calendar_url": {
+	"message": "Outlook Calendar",
+        "description": "text content of the url to outlook calendar"
+    } 
 }

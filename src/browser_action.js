@@ -21,6 +21,18 @@ browser_action.initializeUIContents_ = function() {
     // set default calendar link which should be updated
     // depending on user types once logged in
     $('#calendar_url').attr('href', constants.CALENDAR_CONSUMERS_URL);
+
+    // localization
+    $('.i18n').each(function() {
+	var text = chrome.i18n.getMessage($(this).attr('id').toString()) || '';
+	if ($(this).prop('tagName') == 'IMG') {
+	    $(this).attr('title', text);
+	} else {
+	    $(this).text(text);
+	}
+    });
+
+    moment.locale(chrome.i18n.getUILanguage());
 };
 
 browser_action.registerEventHandlers_ = function() {
@@ -286,7 +298,7 @@ browser_action.showAccountInfo_ = function(user) {
 };
 
 browser_action.showAccountPhoto_ = function(imgDataUrl) {
-    $('#account-photo').attr('src', imgDataUrl);
+    $('#account_photo').attr('src', imgDataUrl);
 };
 
 browser_action.refreshStart_ = function() {

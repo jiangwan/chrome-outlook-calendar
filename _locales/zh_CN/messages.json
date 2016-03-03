@@ -1,6 +1,36 @@
 {
-    "no_event": {
-	"message": "没有安排事情",
+    "no_events": {
+	"message": "没有安排",
 	"description": ""
-    }
+    },
+
+    "signin_button": {
+	"message": "登录",
+	"description": ""
+    },
+
+    "signout_button": {
+	"message": "退出",
+	"description": ""
+    },
+
+    "create_account": {
+	"message": "创建新帐号",
+	"description": "Prompt a url for user to create a new account"
+    },
+
+    "sync_now": {
+	"message": "刷新",
+	"description": "tooltip of the icon for refreshing calendar contents"
+    },
+
+    "account": {
+	"message": "帐号",
+        "description": "tooltip of the icon for user account"
+    },
+
+    "calendar_url": {
+	"message": "Outlook日历",
+        "description": "text content of the url to outlook calendar"
+    } 
 }
