@@ -108,6 +108,7 @@ header {
 
 section {
     padding: 0 8px;
+	display: none;
 }
 
 #signin_logo {

@@ -106,6 +106,8 @@ browser_action.addMessageListeners_ = function() {
 };
 
 browser_action.refreshPage_ = function(authenticated) {
+	$('section').show();
+	
     if (authenticated) {
 	browser_action.showCalendarPage_();
 	browser_action.showCalendarContents_();

@@ -82,7 +82,7 @@ calendar.loadEvents = function(callback) {
 
 	var events = storage['calendar_allEvents'];
 	if (events === undefined) {
-	    calendar.syncCalendarList();
+	    //calendar.syncCalendarList();
 	} else {
 	    var sortedIndices = calendar.sortEventsByDate_(events);
 	    callback({'events': events, 'indices': sortedIndices});
