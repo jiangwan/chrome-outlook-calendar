@@ -213,7 +213,7 @@ browser_action.createEventElement_ = function(event, currentDay) {
 	.css({'background-color': 
 	      treatedAsAllDay ?
 	      util.getCalendarColor(event.color) :
-	      constants.DEFAULT_CALENDAR_COLOR})
+	      '#ffffff'})
 	.appendTo(eventPreview);
 
     // lazy load event details
