@@ -224,14 +224,14 @@ browser_action.createEventElement_ = function(event, currentDay) {
 		
 	    // header contains time range string and location		
 	    var headerDiv = $('<div>')
-        .addClass('event-details-header')
-        .css({'background-color': util.getCalendarColor(event.color)});
+		.addClass('event-details-header')
+		.css({'background-color': util.getCalendarColor(event.color)});
 		
-        $('<a>').attr({
-            'href': event.url,
-            'target': '_blank'
-        }).append(headerDiv)
-        .appendTo(eventDetails);
+            $('<a>').attr({
+		'href': event.url,
+		'target': '_blank'
+            }).append(headerDiv)
+		.appendTo(eventDetails);
 		
 	    var timeRangeString = util.getTimeRangeString(
 		moment.utc(event.startTimeUTC).local(),
@@ -258,30 +258,30 @@ browser_action.createEventElement_ = function(event, currentDay) {
 			    .attr({'src': chrome.extension.getURL('icons/Location-Map-icon.png'),
 				   'alt': 'Location'}))
 		    .appendTo(locationDiv);
-	   
+		
 		$('<div>').addClass('event-location-content')
 		    .text(event.location)
 		    .appendTo(locationDiv);
 	    }
 				
-		$('<div>').addClass('event-details-subject')
+	    $('<div>').addClass('event-details-subject')
 		.text(event.subject)
 		.appendTo(eventDetails);
 
-		var organizerDiv = $('<div>')
+	    var organizerDiv = $('<div>')
 		.addClass('event-organizer')
 		.appendTo(eventDetails);
-		
+	    
 	    $('<div>').addClass('event-organizer-icon')
 		.append($('<img>')
 			.attr({'src': chrome.extension.getURL('icons/Contacts-64.png'),
 			       'alt': 'Organizer'}))
 		.appendTo(organizerDiv);
-		
-		$('<div>').addClass('event-location-content')
+	    
+	    $('<div>').addClass('event-location-content')
 		.text(event.organizer)
 		.appendTo(organizerDiv);
-
+	    
 	    $('<div>').addClass('event-body')
 		.text(event.bodyPreview)
 		.appendTo(eventDetails);
@@ -290,7 +290,7 @@ browser_action.createEventElement_ = function(event, currentDay) {
 
     eventContainer.on('click', function(event) {
 	event.stopPropagation();
-
+	
 	if (!$(event.target).closest(eventDetails).length) {
 	    var wasDetailsOpen = eventDetails.is(':visible');
 	    $('.event-details:visible').slideUp(browser_action.ANIMATION_DURATION_);
@@ -299,7 +299,7 @@ browser_action.createEventElement_ = function(event, currentDay) {
 	    }
 	}
     });
-
+    
     return eventContainer;
 };
 
