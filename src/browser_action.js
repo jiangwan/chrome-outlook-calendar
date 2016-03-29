@@ -189,7 +189,6 @@ browser_action.createEventElement_ = function(event, currentDay) {
     var eventPreview = $('<div>')
 	.addClass('event-preview')
 	.appendTo(eventContainer);
-    var eventDetails = $('<div>').appendTo(eventContainer);
 
     // event preview: start time
     var localStartTime = '';
@@ -216,36 +215,37 @@ browser_action.createEventElement_ = function(event, currentDay) {
 	      '#ffffff'})
 	.appendTo(eventPreview);
 
-    // lazy load event details
+    // lazily load event details
+    var eventDetails = $('<div>').appendTo(eventContainer);
+
     eventPreview.on('click', function() {
 	if (!eventDetails.hasClass('event-details')) {
 	    eventDetails.addClass('event-details');
-
-	    var backgroundColor = util.getCalendarColor(event.color);
-
-	    $('<a>').attr({
-		'href': event.url,
-		'target': '_blank'
-	    }).append($('<div>')
-		      .addClass('event-details-subject')
-		      .text(event.subject)
-		      .css({'background-color': backgroundColor}))
-	    .appendTo(eventDetails);
-
+		
+	    // header contains time range string and location		
+	    var headerDiv = $('<div>')
+        .addClass('event-details-header')
+        .css({'background-color': util.getCalendarColor(event.color)});
+		
+        $('<a>').attr({
+            'href': event.url,
+            'target': '_blank'
+        }).append(headerDiv)
+        .appendTo(eventDetails);
+		
 	    var timeRangeString = util.getTimeRangeString(
 		moment.utc(event.startTimeUTC).local(),
 		moment.utc(event.endTimeUTC).local(),
 		event.isAllDay);
-
+		
 	    $('<div>').addClass('event-timeRange')
 		.text(timeRangeString)
-		.css({'background-color': backgroundColor})
-		.appendTo(eventDetails);
+		.appendTo(headerDiv);
 
 	    if (event.location) {
 		var locationDiv = $('<div>')
 		    .addClass('event-location')
-		    .appendTo(eventDetails);
+		    .appendTo(headerDiv);
 		$('<div>')
 		    .addClass('event-location-icon')
 		    .append($('<img>')
@@ -257,17 +257,22 @@ browser_action.createEventElement_ = function(event, currentDay) {
 		    .text(event.location)
 		    .appendTo(locationDiv);
 	    }
+				
+		$('<div>').addClass('event-details-subject')
+		.text(event.subject)
+		.appendTo(eventDetails);
 
-	    var organizerDiv = $('<div>')
+		var organizerDiv = $('<div>')
 		.addClass('event-organizer')
 		.appendTo(eventDetails);
+		
 	    $('<div>').addClass('event-organizer-icon')
 		.append($('<img>')
 			.attr({'src': chrome.extension.getURL('icons/Contacts-64.png'),
 			       'alt': 'Organizer'}))
 		.appendTo(organizerDiv);
-
-	    $('<div>').addClass('event-location-content')
+		
+		$('<div>').addClass('event-location-content')
 		.text(event.organizer)
 		.appendTo(organizerDiv);
 

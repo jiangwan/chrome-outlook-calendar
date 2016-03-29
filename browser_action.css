@@ -201,24 +201,29 @@ section {
     right: 14px;
 }
 
+.event-details-header { 
+}
+
 .event-details-subject {
-    font-size: 16px;
+    font-size: 20px;
     font-weight: bold;
-    padding: 8px 14px 0 14px;
+    padding: 8px 14px 10px 14px;
 }
 
 .event-details a {
     outline: none;
     color: #000000;
+    text-decoration: none;
 }
 
 .event-timeRange {
-    font-size: 14px;
+    font-size: 16px;
     padding: 6px 12px;
 }
 
 .event-location,
 .event-organizer {
+    font-size: 16px;
     padding: 4px 12px;
 }
 
@@ -246,7 +251,7 @@ section {
 }
 
 .event-body {
-    font-size: 12px;
-    padding: 4px 12px;
+    font-size: 16px;
+    padding: 8px 12px;
     white-space: wrap;
 }
