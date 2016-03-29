@@ -244,8 +244,14 @@ browser_action.createEventElement_ = function(event, currentDay) {
 
 	    if (event.location) {
 		var locationDiv = $('<div>')
-		    .addClass('event-location')
-		    .appendTo(headerDiv);
+		    .addClass('event-location');
+
+		$('<a>').attr({
+		    'href': constants.BING_MAP_QUERY_URL + encodeURIComponent(event.location),
+		    'target': '_blank'
+		}).append(locationDiv)
+		.appendTo(headerDiv);
+
 		$('<div>')
 		    .addClass('event-location-icon')
 		    .append($('<img>')

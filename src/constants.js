@@ -25,3 +25,5 @@ constants.CALENDAR_COLOR = {
 };
 
 constants.DEFAULT_CALENDAR_COLOR = '#ccffcc';
+
+constants.BING_MAP_QUERY_URL = 'http://bing.com/maps/default.aspx?where1=';
