@@ -278,7 +278,7 @@ browser_action.createEventElement_ = function(event, currentDay) {
 			       'alt': 'Organizer'}))
 		.appendTo(organizerDiv);
 	    
-	    $('<div>').addClass('event-location-content')
+	    $('<div>').addClass('event-organizer-content')
 		.text(event.organizer)
 		.appendTo(organizerDiv);
 	    

@@ -236,7 +236,8 @@ section {
     height: 15px;
 }
 
-.event-location-content {
+.event-location-content
+.event-organizer-content {
     font-size: 14px;
 }
 
