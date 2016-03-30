@@ -6,8 +6,8 @@ var authentication = {};
 authentication.config_ = {
     AUTH_ENDPOINT: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
     LOGOUT_URL: {
-	consumers: 'https://login.live.com/logout.srf',
-	organizations: 'https://login.microsoftonline.com/logout.srf'
+        consumers: 'https://login.live.com/logout.srf',
+        organizations: 'https://login.microsoftonline.com/logout.srf'
     },
     CLIENT_ID: '0181f97d-6f49-4bad-9134-86cc2f3b014d',
     REDIRECT_URI: 'https://outlook-extension.azurewebsites.net/',
@@ -22,184 +22,184 @@ authentication.DOMAIN_ = {
 
 authentication.CONSUMERS_TID_ = '9188040d-6c67-4c5b-b112-36a304b66dad';
 
-authentication.login = function(callback) {
+authentication.login = function (callback) {
     var idTokenNonce = authentication.guid_();
     var urlNavigate = authentication.getNavigateUrl_(true /*interactive*/, null /*hint*/)
-	+ '&nonce=' + idTokenNonce;
-    
-    chrome.tabs.create({'url': urlNavigate}, function(loginTab) {
-	var onUpdatedHandler = function (tabId, changeInfo, tab) {
-	    if (tabId == loginTab.id &&
-		tab.url.startsWith(authentication.config_.REDIRECT_URI)) {
-		chrome.tabs.onUpdated.removeListener(onUpdatedHandler);
+        + '&nonce=' + idTokenNonce;
 
-		var requestInfo = authentication.getRequestInfo_(tab.url);
+    chrome.tabs.create({'url': urlNavigate}, function (loginTab) {
+        var onUpdatedHandler = function (tabId, changeInfo, tab) {
+            if (tabId == loginTab.id &&
+                tab.url.startsWith(authentication.config_.REDIRECT_URI)) {
+                chrome.tabs.onUpdated.removeListener(onUpdatedHandler);
 
-		if (requestInfo) {
-		    chrome.tabs.remove(tabId);
-		    chrome.storage.local.set({tokens: requestInfo}, function() {
-			if (chrome.runtime.lastError) {
-			    console.log(chrome.runtime.lastError.message);
-			}
+                var requestInfo = authentication.getRequestInfo_(tab.url);
 
-			if (callback) {
-			    callback(requestInfo.access_token);
-			}
-		    });
-		}
-	    }
-	};
-	
-	chrome.tabs.onUpdated.addListener(onUpdatedHandler);
-	chrome.tabs.onRemoved.addListener(function onRemovedHandler(tabId) {
-	    if (tabId == loginTab.id) {
-		chrome.tabs.onUpdated.removeListener(onUpdatedHandler);
-		chrome.tabs.onRemoved.removeListener(onRemovedHandler);
-	    }
-	});
+                if (requestInfo) {
+                    chrome.tabs.remove(tabId);
+                    chrome.storage.local.set({tokens: requestInfo}, function () {
+                        if (chrome.runtime.lastError) {
+                            console.log(chrome.runtime.lastError.message);
+                        }
+
+                        if (callback) {
+                            callback(requestInfo.access_token);
+                        }
+                    });
+                }
+            }
+        };
+
+        chrome.tabs.onUpdated.addListener(onUpdatedHandler);
+        chrome.tabs.onRemoved.addListener(function onRemovedHandler(tabId) {
+            if (tabId == loginTab.id) {
+                chrome.tabs.onUpdated.removeListener(onUpdatedHandler);
+                chrome.tabs.onRemoved.removeListener(onRemovedHandler);
+            }
+        });
     });
 };
 
-authentication.refreshTokens = function(callback) {
-    chrome.storage.local.get('tokens', function(storage) {
-	if (chrome.runtime.lastError ||
-	    !storage['tokens'] ||
-	    !storage['tokens'].user) {
-	    
-	    console.log('Error retrieving cached token info');
-	    callback(null);
-	    return;
-	}
+authentication.refreshTokens = function (callback) {
+    chrome.storage.local.get('tokens', function (storage) {
+        if (chrome.runtime.lastError || !storage['tokens'] || !storage['tokens'].user) {
 
-	var succeeded = false;
-	var userProfile = storage['tokens'].user;
-	var email = userProfile.preferred_username;
-	var tid = userProfile.tid; 
-	var idTokenNonce = authentication.guid_();
+            console.log('Error retrieving cached token info');
+            callback(null);
+            return;
+        }
 
-	var urlNavigate = authentication.getNavigateUrl_(false /*interactive*/, email)
-	    + '&domain_hint=' + authentication.getDomainHintFromTid_(tid)
-	    + '&nonce=' + idTokenNonce;
+        var succeeded = false;
+        var userProfile = storage['tokens'].user;
+        var email = userProfile.preferred_username;
+        var tid = userProfile.tid;
+        var idTokenNonce = authentication.guid_();
 
-	// request refresh tokens in an iframe embedded in the background page
-	var ifr = document.createElement('iframe');
-	ifr.src = urlNavigate;
-	ifr.style.display = 'none';
+        var urlNavigate = authentication.getNavigateUrl_(false /*interactive*/, email)
+            + '&domain_hint=' + authentication.getDomainHintFromTid_(tid)
+            + '&nonce=' + idTokenNonce;
 
-	var redirectListener = function(details) {
-	    if (details.redirectUrl.startsWith(authentication.config_.REDIRECT_URI)) {
-		var requestInfo = authentication.getRequestInfo_(details.redirectUrl);
+        // request refresh tokens in an iframe embedded in the background page
+        var ifr = document.createElement('iframe');
+        ifr.src = urlNavigate;
+        ifr.style.display = 'none';
 
-		if (requestInfo) {
-		    succeeded = true;
-		    chrome.storage.local.set({'tokens': requestInfo}, function() {
-			if (chrome.runtime.lastError) {
-			    console.log(chrome.runtime.lastError.message);
-			}
-		    
-			callback(requestInfo.access_token);
-		    });
-		}
-	    }
-	};
-	
-	window.setTimeout(function() {
-	    //chrome.webRequest.OnBeforeRedirect.removeListener(function(){});
-	    document.getElementsByTagName('body')[0].removeChild(ifr);
-	    
-	    if (!succeeded) {
-		console.log('Refreshing access tokens: Timeout');
-		callback(null);
-	    }
-	}, constants.REFRESH_TOKENS_TIMEOUT);
+        var redirectListener = function (details) {
+            if (details.redirectUrl.startsWith(authentication.config_.REDIRECT_URI)) {
+                var requestInfo = authentication.getRequestInfo_(details.redirectUrl);
 
-	chrome.webRequest.onBeforeRedirect.addListener(
-	    redirectListener, {'urls': [urlNavigate]});
-	document.getElementsByTagName('body')[0].appendChild(ifr);
+                if (requestInfo) {
+                    succeeded = true;
+                    chrome.storage.local.set({'tokens': requestInfo}, function () {
+                        if (chrome.runtime.lastError) {
+                            console.log(chrome.runtime.lastError.message);
+                        }
+
+                        callback(requestInfo.access_token);
+                    });
+                }
+            }
+        };
+
+        window.setTimeout(function () {
+            //chrome.webRequest.OnBeforeRedirect.removeListener(function(){});
+            document.getElementsByTagName('body')[0].removeChild(ifr);
+
+            if (!succeeded) {
+                console.log('Refreshing access tokens: Timeout');
+                callback(null);
+            }
+        }, constants.REFRESH_TOKENS_TIMEOUT);
+
+        chrome.webRequest.onBeforeRedirect.addListener(
+            redirectListener, {'urls': [urlNavigate]});
+        document.getElementsByTagName('body')[0].appendChild(ifr);
     });
-    
+
 };
 
-authentication.logout = function() {
-    chrome.storage.local.get('tokens', function(storage) {
-	if (chrome.runtime.lastError || !storage['tokens']) {
-	    return;
-	}
+authentication.logout = function () {
+    chrome.storage.local.get('tokens', function (storage) {
+        if (chrome.runtime.lastError || !storage['tokens']) {
+            return;
+        }
 
-	var tid = storage['tokens'].user.tid;
-	var domain = authentication.getDomainHintFromTid_(tid);
-	var logoutUrl = authentication.config_.LOGOUT_URL[domain];
-	
-	chrome.storage.local.remove('tokens', function() {
-	    $.ajax(logoutUrl);
-	});
+        var tid = storage['tokens'].user.tid;
+        var domain = authentication.getDomainHintFromTid_(tid);
+        var logoutUrl = authentication.config_.LOGOUT_URL[domain];
+
+        chrome.storage.local.remove('tokens', function () {
+            $.ajax(logoutUrl);
+        });
     });
 };
 
-authentication.getAccessToken = function(onSuccess) {
-    chrome.storage.local.get('tokens', function(storage) {
-	if (chrome.runtime.lastError) {
-	    console.log(chrome.runtime.lastError.message);
-	}
-	
-	var tokens = storage['tokens'];
-	if (!tokens) {
-	    chrome.storage.local.remove('tokens');
-	    chrome.runtime.sendMessage({'method': 'ui.authStatus.updated',
-					'authorized': false});
-	} else {
-	    onSuccess(tokens.access_token);
-	}
+authentication.getAccessToken = function (onSuccess) {
+    chrome.storage.local.get('tokens', function (storage) {
+        if (chrome.runtime.lastError) {
+            console.log(chrome.runtime.lastError.message);
+        }
+
+        var tokens = storage['tokens'];
+        if (!tokens) {
+            chrome.storage.local.remove('tokens');
+            chrome.runtime.sendMessage({
+                'method': 'ui.authStatus.updated',
+                'authorized': false
+            });
+        } else {
+            onSuccess(tokens.access_token);
+        }
     });
 };
 
 /**
  * Get access token, id token, and extract user information by decoding id token.
  */
-authentication.getRequestInfo_ = function(url) {
+authentication.getRequestInfo_ = function (url) {
     var hash = authentication.getHash_(url);
     var parameters = authentication.deserialize_(hash);
     var requestInfo = null;
 
     var invalid = !parameters
-	|| parameters.error
-	|| !parameters.access_token;
+        || parameters.error
+        || !parameters.access_token;
 
     if (!invalid) {
-	// todo: validate id_token
-	requestInfo = {
-	    access_token: parameters.access_token,
-	    expires_in: parameters.expires_in,
-	    id_token: parameters.id_token,
-	    user: decode.getUser(parameters.id_token, authentication.config_.CLIENT_ID) || {}
-	};
+        // todo: validate id_token
+        requestInfo = {
+            access_token: parameters.access_token,
+            expires_in: parameters.expires_in,
+            id_token: parameters.id_token,
+            user: decode.getUser(parameters.id_token, authentication.config_.CLIENT_ID) || {}
+        };
     }
 
     return requestInfo;
 };
 
-authentication.getNavigateUrl_ = function(interactive, hint) {
+authentication.getNavigateUrl_ = function (interactive, hint) {
     var config = authentication.config_;
     var login_prompt = interactive ? 'login' : 'none';
     var login_hint = hint || '';
-    
+
     var urlNavigate = config.AUTH_ENDPOINT + '?response_mode=fragment'
-	+ '&response_type=' + config.RESPONSE_TYPE
-	+ '&client_id=' + config.CLIENT_ID
-	+ '&redirect_uri=' + encodeURIComponent(config.REDIRECT_URI)
-	+ '&scope=' + encodeURIComponent(config.SCOPES)
-	+ '&prompt=' + login_prompt
-	+ '&login_hint=' + login_hint;
+        + '&response_type=' + config.RESPONSE_TYPE
+        + '&client_id=' + config.CLIENT_ID
+        + '&redirect_uri=' + encodeURIComponent(config.REDIRECT_URI)
+        + '&scope=' + encodeURIComponent(config.SCOPES)
+        + '&prompt=' + login_prompt
+        + '&login_hint=' + login_hint;
 
     return urlNavigate;
 };
 
-authentication.getHash_ = function(url) {
+authentication.getHash_ = function (url) {
     var hash = '';
     if (url.indexOf('#/') > -1) {
-	hash = url.substring(url.indexOf('#/') + 2);
+        hash = url.substring(url.indexOf('#/') + 2);
     } else if (url.indexOf('#') > -1) {
-	hash = url.substring(url.indexOf('#') + 1);
+        hash = url.substring(url.indexOf('#') + 1);
     }
 
     return hash;
@@ -208,7 +208,7 @@ authentication.getHash_ = function(url) {
 /**
  * Hash deserializer (from Microsoft adal.js v1.0.8)
  */
-authentication.deserialize_ = function(query) {
+authentication.deserialize_ = function (query) {
     var match,
         pl = /\+/g,  // Regex for replacing addition symbol with a space
         search = /([^&=]+)=?([^&]*)/g,
@@ -221,14 +221,14 @@ authentication.deserialize_ = function(query) {
         obj[decode(match[1])] = decode(match[2]);
         match = search.exec(query);
     }
-    
+
     return obj;
 };
 
 /**
  * GUID generator (from Microsoft adal.js v1.0.8)
  */
-authentication.guid_ = function() {
+authentication.guid_ = function () {
     // RFC4122: The version 4 UUID is meant for generating UUIDs from truly-random or
     // pseudo-random numbers.
     // The algorithm is as follows:
@@ -258,7 +258,7 @@ authentication.guid_ = function() {
             // each x and y needs to be random
             r = Math.random() * 16 | 0;
         }
-        
+
         if (guidHolder[i] === 'x') {
             guidResponse += hex[r];
         } else if (guidHolder[i] === 'y') {
@@ -270,14 +270,14 @@ authentication.guid_ = function() {
             guidResponse += guidHolder[i];
         }
     }
-    
+
     return guidResponse;
 };
 
 /**
  * source: https://azure.microsoft.com/en-us/documentation/articles/active-directory-v2-protocols-implicit/
  */
-authentication.getDomainHintFromTid_ = function(tid) {
-    return tid == authentication.CONSUMERS_TID_ ? 
-	authentication.DOMAIN_.CONSUMERS : authentication.DOMAIN_.ORG;
+authentication.getDomainHintFromTid_ = function (tid) {
+    return tid == authentication.CONSUMERS_TID_ ?
+        authentication.DOMAIN_.CONSUMERS : authentication.DOMAIN_.ORG;
 };
