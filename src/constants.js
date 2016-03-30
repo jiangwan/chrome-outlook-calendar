@@ -8,14 +8,14 @@ var constants = {};
  * @type {string}
  * @const
  */
-constants.CALENDAR_CONSUMERS_URL = 'https://outlook.live.com/owa/#path=/calendar';
+constants.CALENDAR_CONSUMERS_URL = 'https://outlook.live.com/owa/?path=/calendar/view/Month';
 
 /**
  * Office365 calendar url
  * @type {string}
  * @const
  */
-constants.CALENDAR_ORGANIZATIONS_URL = 'https://outlook.office.com/owa/#path=/calendar';
+constants.CALENDAR_ORGANIZATIONS_URL = 'https://outlook.office.com/owa/?path=/calendar/view/Month';
 
 /**
  * Url for creating live account
@@ -55,3 +55,12 @@ constants.CALENDAR_COLOR = {
  * @const
  */
 constants.DEFAULT_CALENDAR_COLOR = '#ccffcc';
+
+/**
+ * Outlook domain types
+ * @type {Object.<string,string>}
+ */
+constants.DOMAIN = {
+    consumers: 'consumers',
+    organizations: 'organizations'
+};

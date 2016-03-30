@@ -83,13 +83,12 @@ authentication.refreshTokens = function (callback) {
         }
 
         var succeeded = false;
-        var userProfile = storage['tokens'].user;
-        var email = userProfile.preferred_username;
-        var tid = userProfile.tid;
+        var tokens = storage['tokens'];
+        var email = tokens.user.preferred_username;
         var idTokenNonce = authentication.guid_();
 
         var urlNavigate = authentication.getNavigateUrl_(false /*interactive*/, email)
-            + '&domain_hint=' + authentication.getDomainHintFromTid_(tid)
+            + '&domain_hint=' + tokens.domain
             + '&nonce=' + idTokenNonce;
 
         // request refresh tokens in an iframe embedded in the background page
@@ -133,13 +132,12 @@ authentication.refreshTokens = function (callback) {
 
 authentication.logout = function () {
     chrome.storage.local.get('tokens', function (storage) {
-        if (chrome.runtime.lastError || !storage['tokens']) {
+        if (chrome.runtime.lastError ||
+            storage === undefined || !storage['tokens']) {
             return;
         }
 
-        var tid = storage['tokens'].user.tid;
-        var domain = authentication.getDomainHintFromTid_(tid);
-        var logoutUrl = authentication.config_.LOGOUT_URL[domain];
+        var logoutUrl = authentication.config_.LOGOUT_URL[storage['tokens'].domain];
 
         chrome.storage.local.remove('tokens', function () {
             $.ajax(logoutUrl);
@@ -164,7 +162,8 @@ authentication.getAccessToken = function (onSuccess) {
                 'authorized': false
             });
         } else {
-            onSuccess(storage['tokens'].access_token);
+            var tokens = storage['tokens'];
+            onSuccess(tokens.access_token, tokens.domain);
         }
     });
 };
@@ -186,11 +185,14 @@ authentication.getRequestInfo_ = function (url) {
 
     if (!invalid) {
         // todo: validate id_token
+        var user = decode.getUser(parameters.id_token, authentication.config_.CLIENT_ID) || {};
+
         requestInfo = {
             access_token: parameters.access_token,
             expires_in: parameters.expires_in,
             id_token: parameters.id_token,
-            user: decode.getUser(parameters.id_token, authentication.config_.CLIENT_ID) || {}
+            user: user,
+            domain: authentication.getDomainHintFromTid_(user.tid)
         };
     }
 
@@ -318,5 +320,9 @@ authentication.guid_ = function () {
  * @private
  */
 authentication.getDomainHintFromTid_ = function (tid) {
-    return tid == '9188040d-6c67-4c5b-b112-36a304b66dad' ? 'consumers' : 'organizations';
+    if (tid) {
+        return tid == '9188040d-6c67-4c5b-b112-36a304b66dad' ? constants.DOMAIN.consumers : constants.DOMAIN.organizations;
+    } else {
+        return '';
+    }
 };

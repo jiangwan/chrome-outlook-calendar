@@ -18,8 +18,7 @@ browser_action.initialize = function () {
     browser_action.registerEventHandlers_();
     browser_action.addMessageListeners_();
 
-    chrome.runtime.sendMessage({'method': 'authentication.accessToken.get'},
-        browser_action.refreshPage_);
+    chrome.runtime.sendMessage({'method': 'authentication.accessToken.get'});
 };
 
 /**
@@ -27,9 +26,7 @@ browser_action.initialize = function () {
  * @private
  */
 browser_action.initializeUIContents_ = function () {
-    // set default calendar link which should be updated
-    // depending on user types once logged in
-    $('#calendar_url').attr('href', constants.CALENDAR_CONSUMERS_URL);
+    browser_action.updateOWAUrl_();
 
     // localization
     $('.i18n').each(function () {
@@ -85,7 +82,7 @@ browser_action.addMessageListeners_ = function () {
     chrome.runtime.onMessage.addListener(function (message, sender, callback) {
         switch (message.method) {
             case 'ui.authStatus.updated':
-                browser_action.refreshPage_(message.authorized);
+                browser_action.refreshPage_(message.authorized, message.domain);
                 break;
 
             case 'ui.events.update':
@@ -112,7 +109,7 @@ browser_action.addMessageListeners_ = function () {
  * @param {bool} authenticated
  * @private
  */
-browser_action.refreshPage_ = function (authenticated) {
+browser_action.refreshPage_ = function (authenticated, domain) {
     $('section').show();
 
     if (authenticated) {
@@ -121,6 +118,8 @@ browser_action.refreshPage_ = function (authenticated) {
     } else {
         browser_action.logout_();
     }
+
+    browser_action.updateOWAUrl_(domain);
 };
 
 browser_action.showCalendarPage_ = function () {
@@ -152,6 +151,24 @@ browser_action.showLoginPage_ = function () {
 browser_action.logout_ = function () {
     chrome.runtime.sendMessage({'method': 'authentication.clear'});
     browser_action.showLoginPage_();
+};
+
+browser_action.updateOWAUrl_ = function (domain) {
+    var url = null;
+
+    switch (domain) {
+        case constants.DOMAIN.organizations:
+            url = constants.CALENDAR_ORGANIZATIONS_URL;
+            break;
+
+        case constants.DOMAIN.consumers:
+            url = constants.CALENDAR_CONSUMERS_URL;
+            break;
+    }
+
+    if (url) {
+        $('#calendar_url').attr('href', url);
+    }
 };
 
 /**

@@ -12,7 +12,13 @@ background.addMessageListeners_ = function () {
     chrome.runtime.onMessage.addListener(function (message, sender, callback) {
         switch (message.method) {
             case 'authentication.accessToken.get':
-                authentication.getAccessToken(callback);
+                authentication.getAccessToken(function (accessToken, domain) {
+                    chrome.runtime.sendMessage({
+                        'method': 'ui.authStatus.updated',
+                        'authorized': Boolean(accessToken),
+                        'domain': domain
+                    });
+                });
                 break;
 
             case 'authentication.clear':
