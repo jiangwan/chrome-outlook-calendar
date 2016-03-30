@@ -3,6 +3,11 @@
  */
 var authentication = {};
 
+/**
+ * Configuration for authentication
+ * @type {Object}
+ * @private
+ */
 authentication.config_ = {
     AUTH_ENDPOINT: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
     LOGOUT_URL: {
@@ -15,13 +20,17 @@ authentication.config_ = {
     RESPONSE_TYPE: 'id_token+token'
 };
 
-authentication.DOMAIN_ = {
-    CONSUMERS: 'consumers',
-    ORG: 'organizations'
-};
+/**
+ * Stop waiting for refresh tokens after the timeout and consider this attempt as a failure
+ * @type {number}
+ * @private
+ */
+authentication.REFRESH_TOKENS_TIMEOUT_ = 3000; // ms
 
-authentication.CONSUMERS_TID_ = '9188040d-6c67-4c5b-b112-36a304b66dad';
-
+/**
+ * Prompt a login window which takes the user's credential
+ * @param {function(string)} callback A callback called when an access token is available
+ */
 authentication.login = function (callback) {
     var idTokenNonce = authentication.guid_();
     var urlNavigate = authentication.getNavigateUrl_(true /*interactive*/, null /*hint*/)
@@ -60,6 +69,10 @@ authentication.login = function (callback) {
     });
 };
 
+/**
+ * Refresh authentication tokens. Retry several times if failed.
+ * @param {function(string)} callback A callback called when an access token is available
+ */
 authentication.refreshTokens = function (callback) {
     chrome.storage.local.get('tokens', function (storage) {
         if (chrome.runtime.lastError || !storage['tokens'] || !storage['tokens'].user) {
@@ -109,7 +122,7 @@ authentication.refreshTokens = function (callback) {
                 console.log('Refreshing access tokens: Timeout');
                 callback(null);
             }
-        }, constants.REFRESH_TOKENS_TIMEOUT);
+        }, authentication.REFRESH_TOKENS_TIMEOUT_);
 
         chrome.webRequest.onBeforeRedirect.addListener(
             redirectListener, {'urls': [urlNavigate]});
@@ -134,27 +147,33 @@ authentication.logout = function () {
     });
 };
 
+/**
+ * Retrieve cached access token
+ * @param {function(string)} onSuccess A callback called when an access token is available
+ */
 authentication.getAccessToken = function (onSuccess) {
     chrome.storage.local.get('tokens', function (storage) {
         if (chrome.runtime.lastError) {
             console.log(chrome.runtime.lastError.message);
         }
 
-        var tokens = storage['tokens'];
-        if (!tokens) {
+        if (storage === undefined || !storage['tokens']) {
             chrome.storage.local.remove('tokens');
             chrome.runtime.sendMessage({
                 'method': 'ui.authStatus.updated',
                 'authorized': false
             });
         } else {
-            onSuccess(tokens.access_token);
+            onSuccess(storage['tokens'].access_token);
         }
     });
 };
 
 /**
  * Get access token, id token, and extract user information by decoding id token.
+ * @param {string} redirect url
+ * @returns {Object} access token, id token and related information
+ * @private
  */
 authentication.getRequestInfo_ = function (url) {
     var hash = authentication.getHash_(url);
@@ -178,6 +197,13 @@ authentication.getRequestInfo_ = function (url) {
     return requestInfo;
 };
 
+/**
+ * Get url for login
+ * @param {bool} true for interactive auth mode, otherwise false
+ * @param {string} login hint
+ * @returns {string} login url
+ * @private
+ */
 authentication.getNavigateUrl_ = function (interactive, hint) {
     var config = authentication.config_;
     var login_prompt = interactive ? 'login' : 'none';
@@ -194,6 +220,12 @@ authentication.getNavigateUrl_ = function (interactive, hint) {
     return urlNavigate;
 };
 
+/**
+ * Extract hash from url
+ * @param {string} url
+ * @returns {string}
+ * @private
+ */
 authentication.getHash_ = function (url) {
     var hash = '';
     if (url.indexOf('#/') > -1) {
@@ -207,6 +239,9 @@ authentication.getHash_ = function (url) {
 
 /**
  * Hash deserializer (from Microsoft adal.js v1.0.8)
+ * @param {string} query
+ * @returns {Object} deserialized hash
+ * @private
  */
 authentication.deserialize_ = function (query) {
     var match,
@@ -227,6 +262,8 @@ authentication.deserialize_ = function (query) {
 
 /**
  * GUID generator (from Microsoft adal.js v1.0.8)
+ * @returns {string} guid
+ * @private
  */
 authentication.guid_ = function () {
     // RFC4122: The version 4 UUID is meant for generating UUIDs from truly-random or
@@ -276,8 +313,10 @@ authentication.guid_ = function () {
 
 /**
  * source: https://azure.microsoft.com/en-us/documentation/articles/active-directory-v2-protocols-implicit/
+ * @param {string} tid
+ * @returns {string} domain hint
+ * @private
  */
 authentication.getDomainHintFromTid_ = function (tid) {
-    return tid == authentication.CONSUMERS_TID_ ?
-        authentication.DOMAIN_.CONSUMERS : authentication.DOMAIN_.ORG;
+    return tid == '9188040d-6c67-4c5b-b112-36a304b66dad' ? 'consumers' : 'organizations';
 };

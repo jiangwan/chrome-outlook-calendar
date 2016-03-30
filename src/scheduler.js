@@ -5,22 +5,22 @@
  */
 var scheduler = {};
 
-scheduler.name_ = 'calendar_scheduler';
+scheduler.NAME_ = 'calendar_scheduler';
 
-scheduler.INTERVAL = 30; // minutes
+scheduler.INTERVAL_ = 30; // minutes
 
 scheduler.initialize = function () {
     chrome.alarms.onAlarm.addListener(function (alarm) {
-        if (alarm.name === scheduler.name_) {
+        if (alarm.name === scheduler.NAME_) {
             scheduler.updateCalendar_();
         }
     });
 
-    chrome.alarms.get(scheduler.name_, function (alarm) {
-        if (!alarm || alarm.name != scheduler.name_) {
-            chrome.alarms.create(scheduler.name_, {
-                delayInMinutes: scheduler.INTERVAL,
-                periodInMinutes: scheduler.INTERVAL
+    chrome.alarms.get(scheduler.NAME_, function (alarm) {
+        if (!alarm || alarm.name != scheduler.NAME_) {
+            chrome.alarms.create(scheduler.NAME_, {
+                delayInMinutes: scheduler.INTERVAL_,
+                periodInMinutes: scheduler.INTERVAL_
             });
         }
     });

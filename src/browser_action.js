@@ -3,7 +3,12 @@
  */
 var browser_action = {};
 
-browser_action.ANIMATION_DURATION_ = 100;
+/**
+ * UI animation duration
+ * @type {number}
+ * @private
+ */
+browser_action.ANIMATION_DURATION_ = 150;
 
 /**
  * Initialize the popup page
@@ -17,6 +22,10 @@ browser_action.initialize = function () {
         browser_action.refreshPage_);
 };
 
+/**
+ * Initialize UI strings and href urls
+ * @private
+ */
 browser_action.initializeUIContents_ = function () {
     // set default calendar link which should be updated
     // depending on user types once logged in
@@ -70,11 +79,6 @@ browser_action.registerEventHandlers_ = function () {
         browser_action.logout_();
     });
 
-    /** Option page is not yet available
-     $('#settings').on('click', function() {
-	chrome.tabs.create({'url': 'options.html'});
-    });
-     */
 };
 
 browser_action.addMessageListeners_ = function () {
@@ -103,6 +107,11 @@ browser_action.addMessageListeners_ = function () {
     });
 };
 
+/**
+ * Show or hide sign in page
+ * @param {bool} authenticated
+ * @private
+ */
 browser_action.refreshPage_ = function (authenticated) {
     $('section').show();
 
@@ -148,6 +157,8 @@ browser_action.logout_ = function () {
 /**
  * Show all events in the next few days starting from today;
  * for a multi-day event, we display it in each day it occurs;
+ * @param {Object} sorted calendar events data
+ * @private
  */
 browser_action.showCalendarEvents_ = function (data) {
     $('#calendar_events').empty();
@@ -200,7 +211,7 @@ browser_action.createEventElement_ = function (event, currentDay) {
 
         $('<div>').addClass('preview-time')
             .text(localStartTime)
-            .css({'background-color': util.getCalendarColor(event.color)}) // ToDo: use background color of the page if event color is  Auto
+            .css({'background-color': util.getCalendarColor(event.color)})
             .appendTo(eventPreview);
     }
 

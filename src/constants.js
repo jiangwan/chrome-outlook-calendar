@@ -1,17 +1,42 @@
+/**
+ * The namespace for constants in UI
+ */
 var constants = {};
 
+/**
+ * Outlook calendar url
+ * @type {string}
+ * @const
+ */
 constants.CALENDAR_CONSUMERS_URL = 'https://outlook.live.com/owa/#path=/calendar';
 
+/**
+ * Office365 calendar url
+ * @type {string}
+ * @const
+ */
 constants.CALENDAR_ORGANIZATIONS_URL = 'https://outlook.office.com/owa/#path=/calendar';
 
+/**
+ * Url for creating live account
+ * @type {string}
+ * @const
+ */
 constants.CREATE_ACCOUNT_URL = 'https://signup.live.com';
 
-constants.REFRESH_TOKENS_TIMEOUT = 3000;
+/**
+ * Url for location query in Bing map
+ * @type {string}
+ * @const
+ */
+constants.BING_MAP_QUERY_URL = 'http://bing.com/maps/default.aspx?where1=';
 
-constants.REFRESH_TOKENS_RETRY_INTERVAL = 100;
-
-constants.REFRESH_TOKENS_RETRY_LIMIT = 3;
-
+/**
+ * Mapping rgb color to calendar color name.
+ * The strings are obtained from outlook calendar web app.
+ * @type {Object.<string,string>}
+ * @const
+ */
 constants.CALENDAR_COLOR = {
     'LightBlue': 'rgb(166,209,245)',
     'LightTeal': 'rgb(74,218,204)',
@@ -24,6 +49,9 @@ constants.CALENDAR_COLOR = {
     'LightYellow': 'rgb(244,208,122)'
 };
 
+/**
+ * Use this color when the server doesn't provide a valid color
+ * @type {string}
+ * @const
+ */
 constants.DEFAULT_CALENDAR_COLOR = '#ccffcc';
-
-constants.BING_MAP_QUERY_URL = 'http://bing.com/maps/default.aspx?where1=';
