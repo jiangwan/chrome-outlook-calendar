@@ -1,50 +1,50 @@
 <!DOCTYPE html>
 <html>
-    <head>
-	<link rel="stylesheet" href="browser_action.css" type="text/css">
-	<script src="lib/jquery-1.12.0.min.js"></script>
-	<script src="lib/moment-with-locales.min.js"></script>
-        <script src="src/constants.js"></script>
-	<script src="src/util.js"></script>
-	<script src="src/browser_action.js"></script>
-    </head>
-    <body>
-	<header>
-	    <div id="action_bar">
-		<img src="icons/ic_refresh_white_24dp.png" id="sync_now" class="i18n">
-		<img src="icons/Change-User-white-96.png" id="account" class="i18n">
-		<img src="icons/ic_settings_white_24dp.png" style="display:none" id="settings">
-	    </div>
-	    <div id="title">
-		<a id="calendar_url" target="_blank" class="i18n"></a>
-	    </div>
-	</header>
-	<div id="header_placeholder"></div>
-	<div id="account_page" class="account">
-	    <div class="account-photo">
-		<img id="account_photo">
-	    </div>
-	    <div id="account_displayName" class="account-content"></div>
-	    <div id="account_email" class="account-content"></div>
-	    <div class="button-wrapper">
-		<button id="signout_button" class="primary-button i18n"></button>
-	    </div>
-	</div>
-	<div id="content_blocker"></div>
-	<div id="error" class="error"></div>
-	<section>
-	    <div id="logon">
-		<div id="signin_logo">
-		    <img alt="Outlook" src="icons/Circled-User-96.png">
-		</div>
-		<div class="button-wrapper">
-	            <button id="signin_button" class="primary-button i18n"></button>
-		</div>
-		<div class="signin-option">
-		    <span id="create_account" class="i18n"></span>
-		</div>
-	    </div>
-	    <div id="calendar_events"></div>
-	</section>
-    </body>
+<head>
+    <link rel="stylesheet" href="browser_action.css" type="text/css">
+    <script src="lib/jquery-1.12.0.min.js"></script>
+    <script src="lib/moment-with-locales.min.js"></script>
+    <script src="src/constants.js"></script>
+    <script src="src/util.js"></script>
+    <script src="src/browser_action.js"></script>
+</head>
+<body>
+<header>
+    <div id="action_bar">
+        <img src="icons/ic_refresh_white_24dp.png" id="sync_now" class="i18n">
+        <img src="icons/Change-User-white-96.png" id="account" class="i18n">
+        <img src="icons/ic_settings_white_24dp.png" style="display:none" id="settings">
+    </div>
+    <div id="title">
+        <a id="calendar_url" target="_blank" class="i18n"></a>
+    </div>
+</header>
+<div id="header_placeholder"></div>
+<div id="account_page" class="account">
+    <div class="account-photo">
+        <img id="account_photo">
+    </div>
+    <div id="account_displayName" class="account-content"></div>
+    <div id="account_email" class="account-content"></div>
+    <div class="button-wrapper">
+        <button id="signout_button" class="primary-button i18n"></button>
+    </div>
+</div>
+<div id="content_blocker"></div>
+<div id="error" class="error"></div>
+<section>
+    <div id="logon">
+        <div id="signin_logo">
+            <img alt="Outlook" src="icons/Circled-User-96.png">
+        </div>
+        <div class="button-wrapper">
+            <button id="signin_button" class="primary-button i18n"></button>
+        </div>
+        <div class="signin-option">
+            <span id="create_account" class="i18n"></span>
+        </div>
+    </div>
+    <div id="calendar_events"></div>
+</section>
+</body>
 </html>
