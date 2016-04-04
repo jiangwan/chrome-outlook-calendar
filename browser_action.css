@@ -196,9 +196,7 @@ section {
     border-radius: 2px;
     overflow: hidden;
     display: none;
-    position: absolute;
-    left: 14px;
-    right: 14px;
+    position: relative;
 }
 
 .event-details-header { 
