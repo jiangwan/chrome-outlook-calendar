@@ -41,9 +41,6 @@
   },
 
   "browser_action": {
-     "default_icon": {
-        "19": "icons/Apps-Calendar-Metro-icon.png"
-      },
      "default_title": "Outlook Calendar",
      "default_popup": "browser_action.html"
   }
