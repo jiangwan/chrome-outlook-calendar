@@ -249,7 +249,7 @@ browser_action.createEventElement_ = function (event, currentDay) {
         if (!eventDetails.hasClass('event-details')) {
             eventDetails.addClass('event-details');
 
-            // header contains time range string and location		
+            // header contains time range string and location
             var headerDiv = $('<div>')
                 .addClass('event-details-header')
                 .css({'background-color': util.getCalendarColor(event.color)});
@@ -273,11 +273,12 @@ browser_action.createEventElement_ = function (event, currentDay) {
                 var locationDiv = $('<div>')
                     .addClass('event-location');
 
-                $('<a>').attr({
+                /*$('<a>').attr({
                     'href': constants.BING_MAP_QUERY_URL + encodeURIComponent(event.location),
                     'target': '_blank'
                 }).append(locationDiv)
-                    .appendTo(headerDiv);
+                    .appendTo(headerDiv);*/
+                locationDiv.appendTo(headerDiv);
 
                 $('<div>')
                     .addClass('event-location-icon')
