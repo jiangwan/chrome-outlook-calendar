@@ -6,4 +6,4 @@ A chrome extension for checking Outlook calendar events.
 
 
 Note:
-* Only support @outlook.com and office365 accounts
+* Supports @outlook.com and office365 accounts
